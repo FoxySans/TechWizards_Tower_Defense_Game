@@ -2,29 +2,15 @@
 #define SCENE_H
 
 #include "camera.h"
+#include "map.h"
 
-typedef struct Scene
-{
+typedef struct Scene {
+    Map map;
 } Scene;
 
-/**
- * Initialize the scene by loading models.
- */
 void init_scene(Scene* scene);
-
-/**
- * Update the scene.
- */
 void update_scene(Scene* scene);
-
-/**
- * Render the scene objects.
- */
 void render_scene(const Scene* scene);
+void render_map(const Map* map);
 
-/**
- * Draw the origin of the world coordinate system.
- */
-void draw_origin();
-
-#endif /* SCENE_H */
+#endif
