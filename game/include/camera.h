@@ -13,6 +13,8 @@ typedef struct Camera
     vec3 position;
     vec3 rotation;
     vec3 speed;
+    bool isSprinting;
+
 } Camera;
 
 /**
@@ -39,6 +41,8 @@ void rotate_camera(Camera* camera, double horizontal, double vertical, double se
  * Set the speed of forward and backward motion.
  */
 void set_camera_speed(Camera* camera, double speed);
+
+void set_camera_sprint(Camera* camera, bool isSprinting);
 
 /**
  * Set the speed of left and right side steps.

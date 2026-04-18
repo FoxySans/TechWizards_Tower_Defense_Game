@@ -108,6 +108,9 @@ void handle_app_events(App* app)
             case SDL_SCANCODE_W:
                 set_camera_speed(&(app->camera), 1);
                 break;
+            case SDL_SCANCODE_LSHIFT:
+                set_camera_sprint(&(app->camera), true);
+                break;
             case SDL_SCANCODE_S:
                 set_camera_speed(&(app->camera), -1);
                 break;
@@ -131,6 +134,9 @@ void handle_app_events(App* app)
             case SDL_SCANCODE_D:
                 set_camera_side_speed(&(app->camera), 0);
                 break;
+            case SDL_SCANCODE_LSHIFT:
+                set_camera_sprint(&(app->camera), false);
+            break;
             default:
                 break;
             }
