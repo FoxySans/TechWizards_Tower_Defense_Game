@@ -1,7 +1,7 @@
 #include "map.h"
 #include <stdlib.h>
 
-static int level1[15][20] = {
+static int level1[MAP_HEIGHT][MAP_WIDTH] = {
     {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
     {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
     {1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -21,8 +21,8 @@ static int level1[15][20] = {
 
 void map_load_hardcoded(Map* map)
 {
-    map->width  = 20;
-    map->height = 15;
+    map->width  = MAP_WIDTH;
+    map->height = MAP_HEIGHT;
     map->spawn  = (Vec2){ 0, 2 };
     map->base   = (Vec2){ 15, 6 };
 

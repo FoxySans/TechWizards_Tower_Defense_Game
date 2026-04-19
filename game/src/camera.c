@@ -1,7 +1,6 @@
 #include "camera.h"
-
+#include "map.h"
 #include <GL/gl.h>
-
 #include <math.h>
 
 void init_camera(Camera* camera)
@@ -27,6 +26,12 @@ void update_camera(Camera* camera, double time)
     camera->position.y += sin(angle)      * camera->speed.y * sprint * time;
     camera->position.x += cos(side_angle) * camera->speed.x * sprint * time;
     camera->position.y += sin(side_angle) * camera->speed.x * sprint * time;
+
+    //stop player movement if outside of map
+    if (camera->position.x < 0.0)        camera->position.x = 0.0;
+    if (camera->position.x > MAP_WIDTH)   camera->position.x = MAP_WIDTH;
+    if (camera->position.y < 0.0)        camera->position.y = 0.0;
+    if (camera->position.y > MAP_HEIGHT)  camera->position.y = MAP_HEIGHT;
 }
 void set_view(const Camera* camera)
 {

@@ -1,6 +1,9 @@
 #ifndef MAP_H
 #define MAP_H
 
+#define MAP_WIDTH  20
+#define MAP_HEIGHT 15
+
 #include "types.h"
 
 typedef enum {
@@ -15,7 +18,7 @@ typedef struct {
 
 typedef struct {
     int   width, height;
-    Tile  tiles[20][15];  // [col][row] — max méret
+    Tile  tiles[MAP_WIDTH][MAP_HEIGHT];  // [col][row] — max méret
     Vec2  spawn;          // honnan jönnek az ellenségek
     Vec2  base;           // hova kell megérkezni
 } Map;
