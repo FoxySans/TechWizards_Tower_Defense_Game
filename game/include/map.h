@@ -25,7 +25,7 @@ typedef struct {
 } Map;
 
 // Függvény deklarációk — implementáció: map.c
-void map_load_hardcoded(Map *map);
+void map_load(Map *map);
 Tile* map_get_tile(Map *map, int col, int row);
 int   map_is_buildable(Map *map, int col, int row);
 

@@ -1,8 +1,9 @@
 #ifndef CAMERA_H
 #define CAMERA_H
+#define PLAYER_RADIUS 0.15f
 
 #include "utils.h"
-
+#include "map.h"
 #include <stdbool.h>
 
 /**
@@ -25,7 +26,7 @@ void init_camera(Camera* camera);
 /**
  * Update the position of the camera.
  */
-void update_camera(Camera* camera, double time);
+void update_camera(Camera* camera, Map* map, double time);
 
 /**
  * Apply the camera settings to the view transformation.

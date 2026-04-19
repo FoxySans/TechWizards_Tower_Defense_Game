@@ -3,7 +3,7 @@
 
 void init_scene(Scene* scene)
 {
-    map_load_hardcoded(&scene->map);
+    map_load(&scene->map);
 }
 
 void update_scene(Scene* scene)

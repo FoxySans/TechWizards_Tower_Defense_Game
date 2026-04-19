@@ -37,11 +37,11 @@ static int level2[MAP_HEIGHT][MAP_WIDTH] = {
     {3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3},
 };
 
-void map_load_hardcoded(Map* map)
+void map_load(Map* map)
 {
     map->width  = MAP_WIDTH;
     map->height = MAP_HEIGHT;
-    map->spawn  = (Vec2){ 0, 2 };
+    map->spawn  = (Vec2){ 4, 2 };
     map->base   = (Vec2){ 15, 6 };
 
     for (int row = 0; row < map->height; row++)

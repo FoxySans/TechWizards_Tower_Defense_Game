@@ -156,7 +156,7 @@ void handle_app_events(App* app)
             break;
         case SDL_MOUSEMOTION:
             //cursor sticking to the center of the screen
-            rotate_camera(&(app->camera), event.motion.xrel, event.motion.yrel, 0.5);
+            rotate_camera(&(app->camera), event.motion.xrel, event.motion.yrel, 0.4);
             break;
         case SDL_MOUSEBUTTONUP:
             is_mouse_down = false;
@@ -179,7 +179,7 @@ void update_app(App* app)
     elapsed_time = current_time - app->uptime;
     app->uptime = current_time;
 
-    update_camera(&(app->camera), elapsed_time);
+   update_camera(&(app->camera), &(app->scene.map), elapsed_time);
     update_scene(&(app->scene));
 }
 
