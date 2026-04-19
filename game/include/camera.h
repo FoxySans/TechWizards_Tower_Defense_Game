@@ -44,6 +44,8 @@ void set_camera_speed(Camera* camera, double speed);
 
 void set_camera_sprint(Camera* camera, bool isSprinting);
 
+void set_camera_vertical_speed(Camera* camera, double speed);
+
 /**
  * Set the speed of left and right side steps.
  */

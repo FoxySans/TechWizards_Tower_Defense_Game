@@ -105,6 +105,12 @@ void handle_app_events(App* app)
             case SDL_SCANCODE_ESCAPE:
                 app->is_running = false;
                 break;
+            case SDL_SCANCODE_SPACE:
+                set_camera_vertical_speed(&(app->camera), 1);
+                break;
+            case SDL_SCANCODE_LCTRL:
+                set_camera_vertical_speed(&(app->camera), -1);
+                break;
             case SDL_SCANCODE_W:
                 set_camera_speed(&(app->camera), 1);
                 break;
@@ -126,6 +132,10 @@ void handle_app_events(App* app)
             break;
         case SDL_KEYUP:
             switch (event.key.keysym.scancode) {
+            case SDL_SCANCODE_SPACE:
+            case SDL_SCANCODE_LCTRL:
+              set_camera_vertical_speed(&(app->camera), 0);
+              break;
             case SDL_SCANCODE_W:
             case SDL_SCANCODE_S:
                 set_camera_speed(&(app->camera), 0);

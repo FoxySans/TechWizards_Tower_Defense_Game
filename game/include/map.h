@@ -9,7 +9,8 @@
 typedef enum {
     TILE_GRASS,      // építhető, ellenség nem jár itt
     TILE_PATH,       // ellenség útja, nem építhető
-    TILE_BASE        // az alap amit védeni kell
+    TILE_BASE,        // az alap amit védeni kell
+    TILE_WALL
 } TileType;
 
 typedef struct {
