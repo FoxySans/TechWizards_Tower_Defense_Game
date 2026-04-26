@@ -21,7 +21,7 @@ void update_scene(Scene* scene)
     (void)scene;
     
     
-    printf("update_scene called\n");
+    
     update_enemies(&scene->map, 0.016);
 
 
