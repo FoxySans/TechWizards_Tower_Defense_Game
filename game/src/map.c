@@ -41,12 +41,12 @@ void map_load(Map* map)
 {
     map->width  = MAP_WIDTH;
     map->height = MAP_HEIGHT;
-    map->spawn  = (Vec2){ 4, 2 };
+    map->spawn  = (Vec2){ 0, 2 };
     map->base   = (Vec2){ 15, 6 };
 
     for (int row = 0; row < map->height; row++)
         for (int col = 0; col < map->width; col++)
-            map->tiles[col][row].type = (TileType)level2[row][col];
+            map->tiles[col][row].type = (TileType)level1[row][col];
 }
 
 Tile* map_get_tile(Map* map, int col, int row)
