@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:\\Users\\au095304\\Documents\\c_sdk_220203\\MinGW\\bin",
+                "C:\\Users\\au095304\\Documents\\c_sdk_220203\\MinGW\\include\\GL"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ]
+        }
+    ],
+    "version": 4
+}

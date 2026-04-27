@@ -3,9 +3,14 @@
 
 #include "camera.h"
 #include "map.h"
+#include "enemy.h" 
+#include "texture.h"
+#include "obj/model.h"
 
 typedef struct Scene {
     Map map;
+    Enemy enemy;
+    GLUint texture_id;
 } Scene;
 
 void init_scene(Scene* scene);
