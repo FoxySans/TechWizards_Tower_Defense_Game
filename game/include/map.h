@@ -7,10 +7,11 @@
 #include "types.h"
 
 typedef enum {
-    TILE_GRASS,      // építhető, ellenség nem jár itt
-    TILE_PATH,       // ellenség útja, nem építhető
-    TILE_BASE,        // az alap amit védeni kell
-    TILE_WALL
+    TILE_SPAWN, 
+    TILE_GRASS,
+    TILE_PATH,
+    TILE_WALL,
+    TILE_BASE
 } TileType;
 
 typedef struct {

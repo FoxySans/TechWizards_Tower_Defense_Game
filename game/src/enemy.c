@@ -17,9 +17,9 @@ typedef struct {
 } EnemyStats;
 
 static const EnemyStats ENEMY_STATS[] = {
-    [ENEMY_BASIC] = { 100, 0.04f },
-    [ENEMY_FAST]  = {  60, 0.08f },
-    [ENEMY_TANK]  = { 300, 0.02f }
+    [ENEMY_BASIC] = { 100, 5.1f },
+    [ENEMY_FAST]  = {  60, 8.8f },
+    [ENEMY_TANK]  = { 300, 2.4f }
 };
 
 static int is_walkable(const Tile* t)
@@ -158,7 +158,16 @@ float dist = sqrtf(dx * dx + dy * dy);
 if (dist < EPSILON) {
     e->col = e->next_col;
     e->row = e->next_row;
+    // snap float position exactly to tile center
+    e->x = e->col + 0.5f;
+    e->y = e->row + 0.5f;
     choose_next_tile(e, pm);
+
+    // check if reached base
+    if (e->col == (int)map->base.x && e->row == (int)map->base.y) {
+        e->reached_base = true;
+        e->alive = false;
+    }
     return;
 }
 
