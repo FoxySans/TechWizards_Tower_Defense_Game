@@ -4,8 +4,15 @@
 #include "camera.h"
 #include "map.h"
 
+typedef enum GamePhase{
+PHASE_MENU,
+PHASE_MAP_SELECT
+} GamePhase;
+
 typedef struct Scene {
     Map map;
+    TTF_Font* font;
+    int selected_map;
 } Scene;
 
 void init_scene(Scene* scene);
