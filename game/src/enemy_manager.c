@@ -19,7 +19,7 @@ static int spawn_queue_count = 0;
 static int spawn_index = 0;
 
 static double spawn_timer = 0.0;
-static double spawn_interval = 30.0;
+static double spawn_interval = 5.0;
 
 
 

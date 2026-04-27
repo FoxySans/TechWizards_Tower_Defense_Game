@@ -14,5 +14,6 @@ void render_scene(const Scene* scene);
 void render_map(const Map* map);
 void draw_floor(float x, float y, float z, float size);
 void draw_cube(float x, float y, float z, float size);
+void draw_sphere(float x, float y, float z, float radius, int subdivisions);
 
 #endif

@@ -153,6 +153,18 @@ void handle_app_events(App* app)
             break;
         case SDL_MOUSEBUTTONDOWN:
             is_mouse_down = true;
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                double angle = degree_to_radian(app->camera.rotation.z);
+                
+                float look_dist = 2.0f;
+                float target_x = app->camera.position.x + cos(angle) * look_dist;
+                float target_y = app->camera.position.y + sin(angle) * look_dist;
+
+                int col = (int)target_x;
+                int row = (int)target_y;
+
+                map_upgrade_to_tower(&app->scene.map, col, row);
+            }
             break;
         case SDL_MOUSEMOTION:
             //cursor sticking to the center of the screen

@@ -17,9 +17,9 @@ typedef struct {
 } EnemyStats;
 
 static const EnemyStats ENEMY_STATS[] = {
-    [ENEMY_BASIC] = { 100, 5.1f },
-    [ENEMY_FAST]  = {  60, 8.8f },
-    [ENEMY_TANK]  = { 300, 2.4f }
+    [ENEMY_BASIC] = { 100, 1.0f },
+    [ENEMY_FAST]  = {  60, 3.0f },
+    [ENEMY_TANK]  = { 300, 0.5f }
 };
 
 static int is_walkable(const Tile* t)

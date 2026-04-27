@@ -1,6 +1,7 @@
 #include "scene.h"
 #include <GL/gl.h>
 #include "enemy_manager.h"
+#include <math.h>
 void init_scene(Scene* scene)
 {
     map_load(&scene->map);
@@ -10,9 +11,11 @@ void init_scene(Scene* scene)
 
 //TESZT
 
-    spawn_enemy(ENEMY_BASIC, 5);
-    spawn_enemy(ENEMY_FAST, 3);
-    spawn_enemy(ENEMY_TANK, 2);
+    spawn_enemy(ENEMY_BASIC, 2);
+    spawn_enemy(ENEMY_FAST, 1);
+    spawn_enemy(ENEMY_TANK, 3);
+    spawn_enemy(ENEMY_BASIC, 2);
+    spawn_enemy(ENEMY_FAST, 1);
 
 }
 
@@ -39,22 +42,24 @@ void render_map(const Map* map)
 
     for (int row = 0; row < map->height; row++) {
         for (int col = 0; col < map->width; col++) {
-
             Tile* t = map_get_tile((Map*)map, col, row);
             if (!t) continue;
-
-            switch (t->type) {
-                case TILE_GRASS: glColor3f(0.2f, 0.6f, 0.2f); break;
-                case TILE_PATH:  glColor3f(0.7f, 0.6f, 0.3f); break;
-                case TILE_BASE:  glColor3f(0.8f, 0.2f, 0.2f); break;
-            }
 
             float x = col * tile_size;
             float y = row * tile_size;
 
-           if (t->type == TILE_WALL) {
+            if (t->type == TILE_WALL) {
+                glColor3f(0.4f, 0.4f, 0.4f); 
                 draw_cube(x, y, 0.0f, tile_size);
-            } else {
+            } 
+            else if (t->type == TILE_TOWER) {
+                glColor3f(0.4f, 0.4f, 0.4f);
+                draw_cube(x, y, 0.0f, tile_size);
+
+                glColor3f(0.0f, 0.7f, 1.0f);
+                draw_sphere(x + 0.5f, y + 0.5f, 1.2f, 0.4f, 10);
+            }
+            else {
                 switch (t->type) {
                     case TILE_GRASS: glColor3f(0.2f, 0.6f, 0.2f); break;
                     case TILE_PATH:  glColor3f(0.7f, 0.6f, 0.3f); break;
@@ -64,6 +69,29 @@ void render_map(const Map* map)
                 draw_floor(x, y, 0.0f, tile_size);
             }
         }
+    }
+}
+
+void draw_sphere(float x, float y, float z, float radius, int subdivisions) {
+    float lat, lon;
+    float step = M_PI / subdivisions;
+
+    for (lat = 0; lat < M_PI; lat += step) {
+        glBegin(GL_QUAD_STRIP);
+        for (lon = 0; lon <= 2 * M_PI + step; lon += step) {
+            // Vertex 1
+            float x1 = x + radius * sin(lat) * cos(lon);
+            float y1 = y + radius * sin(lat) * sin(lon);
+            float z1 = z + radius * cos(lat);
+            glVertex3f(x1, y1, z1);
+
+            // Vertex 2 (next latitude step)
+            float x2 = x + radius * sin(lat + step) * cos(lon);
+            float y2 = y + radius * sin(lat + step) * sin(lon);
+            float z2 = z + radius * cos(lat + step);
+            glVertex3f(x2, y2, z2);
+        }
+        glEnd();
     }
 }
 
