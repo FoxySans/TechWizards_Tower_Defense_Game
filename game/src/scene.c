@@ -1,19 +1,36 @@
 #include "scene.h"
 #include <GL/gl.h>
-
+#include "enemy_manager.h"
 void init_scene(Scene* scene)
 {
     map_load(&scene->map);
+    
+//TESZT
+    enemy_manager_init(&scene->map);
+
+//TESZT
+
+    spawn_enemy(ENEMY_BASIC, 5);
+    spawn_enemy(ENEMY_FAST, 3);
+    spawn_enemy(ENEMY_TANK, 2);
+
 }
 
 void update_scene(Scene* scene)
 {
     (void)scene;
+    
+    
+    
+    update_enemies(&scene->map, 0.016);
+
+
 }
 
 void render_scene(const Scene* scene)
 {
     render_map(&scene->map);
+    render_enemies();
 }
 
 void render_map(const Map* map)
