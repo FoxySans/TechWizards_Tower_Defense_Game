@@ -193,47 +193,66 @@ void enemy_damage(Enemy* e, int dmg)
 }
 
 
-void enemy_render(const Enemy* e)
+void enemy_render(const Enemy* e, float cam_rot_z)
 {
     if (!e->alive)
         return;
 
     glPushMatrix();
-    glTranslatef(e->x, e->y, e->z);
+    glTranslatef(e->x, e->y, 0.0f);
 
-    
-    switch (e->type) {
-        case ENEMY_BASIC:
-            glColor3f(0.9f, 0.1f, 0.1f); 
-            break;
-        case ENEMY_FAST:
-            glColor3f(0.1f, 0.2f, 0.9f); 
-            break;
-        case ENEMY_TANK:
-            glColor3f(0.1f, 0.8f, 0.2f); 
-            break;
-        default:
-            glColor3f(1.0f, 1.0f, 1.0f);
-    }
-
-    
+    glColor3f(0.9f, 0.1f, 0.1f);
     float size = 0.2f;
     if (e->type == ENEMY_TANK) {
+        glColor3f(0.0f, 0.9f, 0.0f);
         size = 0.28f;
     } else if (e->type == ENEMY_FAST) {
+        glColor3f(0.0f, 0.0f, 0.9f);
         size = 0.16f;
     }
 
-    
-glBegin(GL_QUADS);
-    
-    glVertex3f(-size, 0, 0);
-    glVertex3f( size, 0, 0);
-    glVertex3f( size, 0, 0.6f);
-    glVertex3f(-size, 0, 0.6f);
-glEnd();
+    glBegin(GL_QUADS);
+        glVertex3f(-size, 0, 0);
+        glVertex3f( size, 0, 0);
+        glVertex3f( size, 0, 0.6f);
+        glVertex3f(-size, 0, 0.6f);
+    glEnd();
 
+    // 2. HP BAR RENDERING (Billboarded to face camera)
+    glPushMatrix();
+        // Move to head height (above the enemy body)
+        glTranslatef(0, 0, 0.75f); 
+        
+        // Rotate to face the camera based on Z-rotation
+        glRotatef(cam_rot_z - 90.0f, 0, 0, 1);
+        glRotatef(90.0f, 1.0f, 0.0f, 0.0f); 
 
-    glPopMatrix();
+        float bar_w = size * 2.0f;
+        float bar_h = 0.06f;
+        float health_perc = (float)e->hp / (float)ENEMY_STATS[e->type].hp;
+
+        // DRAW RED BACKGROUND (The "container")
+        glColor3f(0.3f, 0.0f, 0.0f); // Dark red
+        glBegin(GL_QUADS);
+            glVertex2f(-bar_w/2, 0);
+            glVertex2f( bar_w/2, 0);
+            glVertex2f( bar_w/2, bar_h);
+            glVertex2f(-bar_w/2, bar_h);
+        glEnd();
+
+        // DRAW GREEN BAR (The actual health)
+        // We add a tiny 0.001f offset on the Z-axis here to stop the flickering
+        glTranslatef(0.0f, 0.0f, 0.001f); 
+        
+        glColor3f(0.0f, 1.0f, 0.0f); // Bright green
+        glBegin(GL_QUADS);
+            glVertex2f(-bar_w/2, 0);
+            glVertex2f(-bar_w/2 + (bar_w * health_perc), 0);
+            glVertex2f(-bar_w/2 + (bar_w * health_perc), bar_h);
+            glVertex2f(-bar_w/2, bar_h);
+        glEnd();
+    glPopMatrix(); // End HP Bar transformations
+
+    glPopMatrix(); // End Enemy transformations
 }
 

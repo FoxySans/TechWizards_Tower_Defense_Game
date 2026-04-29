@@ -44,6 +44,6 @@ void enemy_build_pathmap(PathMap* pm, const Map* map);
 void enemy_init(Enemy* e, const Map* map, const PathMap* pm, EnemyType type);
 void enemy_update(Enemy* enemy, const Map* map, const PathMap* pm, double delta_time);
 void enemy_damage(Enemy* enemy, int damage);
-void enemy_render(const Enemy* enemy);
+void enemy_render(const Enemy* e, float cam_rot_z);
 
 #endif

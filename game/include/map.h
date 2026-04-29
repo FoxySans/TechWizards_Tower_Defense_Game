@@ -12,7 +12,8 @@ typedef enum {
     TILE_PATH,
     TILE_WALL,
     TILE_BASE,
-    TILE_TOWER
+    TILE_TOWER_RED,
+    TILE_TOWER_BLUE
 } TileType;
 
 typedef struct {
@@ -30,6 +31,6 @@ typedef struct {
 void map_load(Map *map);
 Tile* map_get_tile(Map *map, int col, int row);
 int   map_is_buildable(Map *map, int col, int row);
-void map_upgrade_to_tower(Map* map, int col, int row);
+void map_upgrade_to_tower(Map* map, int col, int row, int tower_type);
 
 #endif

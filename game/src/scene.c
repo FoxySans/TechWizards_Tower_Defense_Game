@@ -30,10 +30,10 @@ void update_scene(Scene* scene)
 
 }
 
-void render_scene(const Scene* scene)
+void render_scene(const Scene* scene, float cam_rot_z)
 {
     render_map(&scene->map);
-    render_enemies();
+    render_enemies(cam_rot_z);
 }
 
 void render_map(const Map* map)
@@ -52,11 +52,18 @@ void render_map(const Map* map)
                 glColor3f(0.4f, 0.4f, 0.4f); 
                 draw_cube(x, y, 0.0f, tile_size);
             } 
-            else if (t->type == TILE_TOWER) {
+            else if (t->type == TILE_TOWER_RED) {
                 glColor3f(0.4f, 0.4f, 0.4f);
                 draw_cube(x, y, 0.0f, tile_size);
 
-                glColor3f(0.0f, 0.7f, 1.0f);
+                glColor3f(1.0f, 0.0f, 0.0f);
+                draw_sphere(x + 0.5f, y + 0.5f, 1.2f, 0.4f, 10);
+            }
+            else if (t->type == TILE_TOWER_BLUE) {
+                glColor3f(0.4f, 0.4f, 0.4f);
+                draw_cube(x, y, 0.0f, tile_size);
+
+                glColor3f(0.0f, 0.0f, 1.0f);
                 draw_sphere(x + 0.5f, y + 0.5f, 1.2f, 0.4f, 10);
             }
             else {
@@ -109,7 +116,7 @@ void draw_cube(float x, float y, float z, float size)
 {
     float x2 = x + size;
     float y2 = y + size;
-    float z2 = z + size;
+    float z2 = z + (size/4);
 
     // floor
     glColor3f(0.4f, 0.4f, 0.4f);

@@ -70,12 +70,25 @@ Tile* map_get_tile(Map* map, int col, int row)
 int map_is_buildable(Map* map, int col, int row)
 {
     Tile* t = map_get_tile(map, col, row);
-    return t && t->type == TILE_GRASS;
+    return t && t->type == TILE_WALL;
 }
 
-void map_upgrade_to_tower(Map* map, int col, int row) {
+void map_upgrade_to_tower(Map* map, int col, int row, int tower_type) {
     Tile* t = map_get_tile(map, col, row);
     if (t && t->type == TILE_WALL) {
-        t->type = TILE_TOWER; 
+        switch (tower_type)
+        {
+        case TILE_TOWER_BLUE:
+            t->type = TILE_TOWER_BLUE;
+            break;
+        case TILE_TOWER_RED:
+            t->type = TILE_TOWER_RED;
+            break;
+        default:
+            break;
+        }
+        
+        
+         
     }
 }

@@ -1,11 +1,15 @@
 #include "app.h"
-
+#include <stdio.h>
+#include <math.h>   
 #include <SDL2/SDL_image.h>
 
 void init_app(App* app, int width, int height)
 {
     int error_code;
     int inited_loaders;
+    app->is_building = false;
+    app->build_timer = 0.0f;
+    app->build_threshold = 1.5f;
 
     app->is_running = false;
 
@@ -126,6 +130,21 @@ void handle_app_events(App* app)
             case SDL_SCANCODE_D:
                 set_camera_side_speed(&(app->camera), -1);
                 break;
+            case SDL_SCANCODE_1:
+                app->selected_tower_type = TILE_TOWER_RED;
+                printf("Selected: Red Tower\n");
+                break;
+            case SDL_SCANCODE_2:
+                app->selected_tower_type = TILE_TOWER_BLUE;
+                printf("Selected: Blue Tower\n");
+                break;
+            case SDL_SCANCODE_E:
+                    app->is_building = true;
+                    if (app->build_timer == app->build_threshold)
+                    {
+                        app->is_building = false;
+                    }
+                break;
             default:
                 break;
             }
@@ -147,24 +166,16 @@ void handle_app_events(App* app)
             case SDL_SCANCODE_LSHIFT:
                 set_camera_sprint(&(app->camera), false);
             break;
+            case SDL_SCANCODE_E:
+                app->is_building = false;
+                app->build_timer = 0.0f;
+                break;
             default:
                 break;
             }
             break;
         case SDL_MOUSEBUTTONDOWN:
             is_mouse_down = true;
-            if (event.button.button == SDL_BUTTON_LEFT) {
-                double angle = degree_to_radian(app->camera.rotation.z);
-                
-                float look_dist = 2.0f;
-                float target_x = app->camera.position.x + cos(angle) * look_dist;
-                float target_y = app->camera.position.y + sin(angle) * look_dist;
-
-                int col = (int)target_x;
-                int row = (int)target_y;
-
-                map_upgrade_to_tower(&app->scene.map, col, row);
-            }
             break;
         case SDL_MOUSEMOTION:
             //cursor sticking to the center of the screen
@@ -191,8 +202,26 @@ void update_app(App* app)
     elapsed_time = current_time - app->uptime;
     app->uptime = current_time;
 
-   update_camera(&(app->camera), &(app->scene.map), elapsed_time);
+    update_camera(&(app->camera), &(app->scene.map), elapsed_time);
     update_scene(&(app->scene));
+
+    if (app->is_building) {
+        app->build_timer += elapsed_time;
+
+        if (app->build_timer >= app->build_threshold) {
+            // THE BUILD TRIGGER
+            double angle = degree_to_radian(app->camera.rotation.z);
+            float target_x = app->camera.position.x + cos(angle) * 2.0f;
+            float target_y = app->camera.position.y + sin(angle) * 2.0f;
+            
+            map_upgrade_to_tower(&app->scene.map, (int)target_x, (int)target_y, app->selected_tower_type);
+            
+            // Reset after successful build so they have to press again
+            app->is_building = false; 
+            app->build_timer = 0.0f;
+        }
+    }
+
 }
 
 void render_app(App* app)
@@ -202,10 +231,130 @@ void render_app(App* app)
 
     glPushMatrix();
     set_view(&(app->camera));
-    render_scene(&(app->scene));
+    render_scene(&(app->scene), app->camera.rotation.z);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_BLEND);
+
     glPopMatrix();
 
+    // 2D Overlay Section
+    draw_crosshair(app); 
+
+    // --- NEW INDICATOR LOGIC ---
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    glDisable(GL_DEPTH_TEST);
+
+    // Set color based on selection
+    if (app->selected_tower_type == TILE_TOWER_RED) {
+        glColor3f(1.0f, 0.0f, 0.0f); // Red
+    } else if (app->selected_tower_type == TILE_TOWER_BLUE) {
+        glColor3f(0.0f, 0.0f, 1.0f); // Blue
+    } else {
+        glColor3f(0.5f, 0.5f, 0.5f); // Grey if none
+    }
+
+    // Draw the circle in the bottom-left corner
+    // (-0.8, -0.8) moves it to the corner, 0.1 is the size
+    draw_ui_circle(0.85f, -0.85f, 0.08f, 20);
+
+    glEnable(GL_DEPTH_TEST);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    // ----------------------------
+
     SDL_GL_SwapWindow(app->window);
+}
+
+void draw_crosshair(App* app)
+{
+    // 1. Logic Math (Keep this at the top)
+    double angle = degree_to_radian(app->camera.rotation.z);
+    float look_dist = 2.0f;
+    float target_x = app->camera.position.x + cos(angle) * look_dist;
+    float target_y = app->camera.position.y + sin(angle) * look_dist;
+
+    Tile* t = map_get_tile(&app->scene.map, (int)target_x, (int)target_y);
+    bool buildable = (t && t->type == TILE_WALL);
+
+    // 2. Enter 2D HUD Mode
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    glDisable(GL_DEPTH_TEST);
+
+    // 3. Draw the Crosshair Lines
+    if (buildable) {
+        glColor3f(0.0f, 1.0f, 0.0f); // Green
+    } else {
+        glColor3f(1.0f, 1.0f, 1.0f); // White
+    }
+
+    glLineWidth(2.0f);
+    float size = 0.025f;
+    glBegin(GL_LINES);
+        glVertex2f(size/1.5, 0.0f); glVertex2f(-size/1.5, 0.0f);
+        glVertex2f(0.0f, -size);    glVertex2f(0.0f, size);
+    glEnd();
+
+    // 4. Draw the Progress Circle (CRITICAL: Must stay inside the 2D block)
+    if ((app->is_building && buildable) && (app->selected_tower_type == TILE_TOWER_BLUE || app->selected_tower_type == TILE_TOWER_RED)) {
+        float progress = app->build_timer / app->build_threshold;
+        if (progress > 1.0f) progress = 1.0f;
+
+        glLineWidth(3.0f);
+        glColor3f(0.0f, 1.0f, 0.0f); 
+        
+        float radius = 0.05f;
+        int segments = 32;
+        int segments_to_draw = (int)(segments * progress);
+
+        glBegin(GL_LINE_STRIP);
+        for (int i = 0; i <= segments_to_draw; i++) {
+            float theta = 2.0f * 3.1415926f * (float)i / (float)segments;
+            // Center is 0,0 because of our glOrtho(-1, 1...) setup
+            float x = radius * cosf(theta);
+            float y = radius * sinf(theta);
+            glVertex2f(x, y);
+            if (app->is_building == false)
+            {
+                break;
+            }
+        }
+        glEnd();
+    }
+
+    // 5. Exit 2D HUD Mode (Cleanup)
+    glEnable(GL_DEPTH_TEST);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+}
+
+void draw_ui_circle(float x, float y, float radius, int segments) {
+    glBegin(GL_TRIANGLE_FAN);
+        glVertex2f(x, y); // Center of circle
+        for (int i = 0; i <= segments; i++) {
+            float theta = 2.0f * 3.1415926f * (float)i / (float)segments;
+            glVertex2f(x + (radius * cosf(theta)), y + (radius * sinf(theta)));
+        }
+    glEnd();
 }
 
 void destroy_app(App* app)

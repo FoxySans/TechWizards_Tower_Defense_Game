@@ -87,9 +87,11 @@ void update_enemies(const Map* map, double dt)
 
 
 
-void render_enemies(void)
+void render_enemies(float cam_rot_z)
 {
     for (int i = 0; i < enemy_count; i++) {
-        enemy_render(&enemies[i]);
+        if (enemies[i].alive) {
+            enemy_render(&enemies[i], cam_rot_z);
+        }
     }
 }

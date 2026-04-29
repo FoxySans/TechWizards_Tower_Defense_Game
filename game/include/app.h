@@ -21,7 +21,13 @@ typedef struct App
     double uptime;
     Camera camera;
     Scene scene;
+    int selected_tower_type;
+    bool is_building;
+    float build_timer;
+    float build_threshold;
 } App;
+
+void draw_crosshair(App* app);
 
 /**
  * Initialize the application.
@@ -48,10 +54,14 @@ void handle_app_events(App* app);
  */
 void update_app(App* app);
 
+void draw_ui_circle(float x, float y, float radius, int segments);
+
 /**
  * Render the application.
  */
 void render_app(App* app);
+
+void render_build_indicator(App* app);
 
 /**
  * Destroy the application.
