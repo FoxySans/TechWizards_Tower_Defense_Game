@@ -2,7 +2,7 @@
 #ifndef ENEMY_H
 #define ENEMY_H
 
-#include "map.h"
+#include "world/map.h"
 #include <stdbool.h>
 
 #define MAX_MAP_W MAP_WIDTH

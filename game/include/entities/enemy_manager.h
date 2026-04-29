@@ -2,7 +2,7 @@
 #ifndef ENEMY_MANAGER_H
 #define ENEMY_MANAGER_H
 
-#include "enemy.h"
+#include "entities/enemy.h"
 
 
 

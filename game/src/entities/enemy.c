@@ -1,5 +1,5 @@
 
-#include "enemy.h"
+#include "entities/enemy.h"
 #include <GL/gl.h>
 #include <math.h>
 #include <limits.h>
