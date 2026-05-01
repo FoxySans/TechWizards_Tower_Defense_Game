@@ -2,19 +2,13 @@
 #include <GL/gl.h>
 #include "enemy_manager.h"
 <<<<<<< HEAD
-<<<<<<< HEAD
 #include <math.h>
 =======
-=======
->>>>>>> 4285e28d7221771d0f7cacbacbbc3f8ddede0d56
 #include <obj/load.h>
 #include <obj/draw.h>
 
 
-<<<<<<< HEAD
 >>>>>>> 4285e28 (scientist model loaded)
-=======
->>>>>>> 4285e28d7221771d0f7cacbacbbc3f8ddede0d56
 void init_scene(Scene* scene)
 {
     map_load(&scene->map);
@@ -25,7 +19,6 @@ void init_scene(Scene* scene)
 
 //TESZT
 <<<<<<< HEAD
-<<<<<<< HEAD
 
     spawn_enemy(ENEMY_BASIC, 2);
     spawn_enemy(ENEMY_FAST, 1);
@@ -33,8 +26,6 @@ void init_scene(Scene* scene)
     spawn_enemy(ENEMY_BASIC, 2);
     spawn_enemy(ENEMY_FAST, 1);
 =======
-=======
->>>>>>> 4285e28d7221771d0f7cacbacbbc3f8ddede0d56
     spawn_enemy(ENEMY_BASIC, 5);
     spawn_enemy(ENEMY_FAST, 3);
     spawn_enemy(ENEMY_TANK, 2);
@@ -56,10 +47,7 @@ void render_scene(const Scene* scene, float cam_rot_z)
 =======
     render_enemies();
     draw_model(&(scene->character));
-<<<<<<< HEAD
 >>>>>>> 4285e28 (scientist model loaded)
-=======
->>>>>>> 4285e28d7221771d0f7cacbacbbc3f8ddede0d56
 }
 
 void render_map(const Map* map)
