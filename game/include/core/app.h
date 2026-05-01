@@ -1,13 +1,12 @@
 #ifndef APP_H
 #define APP_H
 
-#include "camera.h"
-#include "scene.h"
-
+#include "render/camera.h"
+#include "world/scene.h"
+#include "entities/character.h"
 #include <SDL2/SDL.h>
-
 #include <GL/gl.h>
-
+#include <stdio.h>
 #include <stdbool.h>
 
 #define VIEWPORT_RATIO (16 / 9.0)

@@ -1,5 +1,5 @@
 
-#include "enemy_manager.h"
+#include "entities/enemy_manager.h"
 #include <stdio.h>
 
 static Enemy enemies[MAX_ENEMIES];

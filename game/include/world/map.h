@@ -4,7 +4,7 @@
 #define MAP_WIDTH  20
 #define MAP_HEIGHT 15
 
-#include "types.h"
+#include "core/types.h"
 
 typedef enum {
     TILE_SPAWN, 

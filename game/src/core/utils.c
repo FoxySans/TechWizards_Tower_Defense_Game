@@ -1,6 +1,7 @@
-#include "utils.h"
-
+#define _USE_MATH_DEFINES
+#include "core/utils.h"
 #include <math.h>
+
 
 double degree_to_radian(double degree)
 {

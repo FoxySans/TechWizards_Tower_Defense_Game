@@ -2,8 +2,8 @@
 #define CAMERA_H
 #define PLAYER_RADIUS 0.15f
 
-#include "utils.h"
-#include "map.h"
+#include "core/utils.h"
+#include "world/map.h"
 #include <stdbool.h>
 
 /**

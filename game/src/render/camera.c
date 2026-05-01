@@ -1,12 +1,12 @@
-#include "camera.h"
-#include "map.h"
+#include "render/camera.h"
+#include "world/map.h"
 #include <GL/gl.h>
 #include <math.h>
 
 
 void init_camera(Camera* camera)
 {
-     camera->position.x = 0.5;  // center of tile col 0
+    camera->position.x = 0.5;  // center of tile col 0
     camera->position.y = 1.5;  // center of tile row 1
     camera->position.z = 0.5;  // eye height
     camera->rotation.x = 0.0;

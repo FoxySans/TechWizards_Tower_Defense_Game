@@ -109,26 +109,17 @@ void handle_app_events(App* app)
             case SDL_SCANCODE_ESCAPE:
                 app->is_running = false;
                 break;
-            case SDL_SCANCODE_SPACE:
-                set_camera_vertical_speed(&(app->camera), 1);
-                break;
-            case SDL_SCANCODE_LCTRL:
-                set_camera_vertical_speed(&(app->camera), -1);
-                break;
             case SDL_SCANCODE_W:
-                set_camera_speed(&(app->camera), 1);
-                break;
-            case SDL_SCANCODE_LSHIFT:
-                set_camera_sprint(&(app->camera), true);
+                character_set_speed(&app->scene.character, 1, app->scene.character.speed_side);
                 break;
             case SDL_SCANCODE_S:
-                set_camera_speed(&(app->camera), -1);
+                character_set_speed(&app->scene.character, -1, app->scene.character.speed_side);
                 break;
             case SDL_SCANCODE_A:
-                set_camera_side_speed(&(app->camera), 1);
+                character_set_speed(&app->scene.character, app->scene.character.speed_forward, 1);
                 break;
             case SDL_SCANCODE_D:
-                set_camera_side_speed(&(app->camera), -1);
+                character_set_speed(&app->scene.character, app->scene.character.speed_forward, -1);
                 break;
             case SDL_SCANCODE_1:
                 app->selected_tower_type = TILE_TOWER_RED;
@@ -145,6 +136,19 @@ void handle_app_events(App* app)
                         app->is_building = false;
                     }
                 break;
+            case SDL_SCANCODE_LSHIFT:
+                character_set_sprint(&app->scene.character, true);
+                break;
+            case SDL_SCANCODE_SPACE:
+                character_set_vertical(&app->scene.character, 1);
+                break;
+            case SDL_SCANCODE_LCTRL:
+                character_set_vertical(&app->scene.character, -1);
+                break;
+            case SDL_SCANCODE_V:
+            character_toggle_view(&app->scene.character);
+            break;
+
             default:
                 break;
             }
@@ -153,22 +157,18 @@ void handle_app_events(App* app)
             switch (event.key.keysym.scancode) {
             case SDL_SCANCODE_SPACE:
             case SDL_SCANCODE_LCTRL:
-              set_camera_vertical_speed(&(app->camera), 0);
-              break;
+                character_set_vertical(&app->scene.character, 0);  // was set_camera_vertical_speed
+                break;
             case SDL_SCANCODE_W:
             case SDL_SCANCODE_S:
-                set_camera_speed(&(app->camera), 0);
+                character_set_speed(&app->scene.character, 0, app->scene.character.speed_side);  // was set_camera_speed
                 break;
             case SDL_SCANCODE_A:
             case SDL_SCANCODE_D:
-                set_camera_side_speed(&(app->camera), 0);
+                character_set_speed(&app->scene.character, app->scene.character.speed_forward, 0);  // was set_camera_side_speed
                 break;
             case SDL_SCANCODE_LSHIFT:
-                set_camera_sprint(&(app->camera), false);
-            break;
-            case SDL_SCANCODE_E:
-                app->is_building = false;
-                app->build_timer = 0.0f;
+                character_set_sprint(&app->scene.character, false);  // was set_camera_sprint
                 break;
             default:
                 break;
@@ -179,7 +179,7 @@ void handle_app_events(App* app)
             break;
         case SDL_MOUSEMOTION:
             //cursor sticking to the center of the screen
-            rotate_camera(&(app->camera), event.motion.xrel, event.motion.yrel, 0.4);
+            character_rotate(&app->scene.character, event.motion.xrel, event.motion.yrel, 0.4);
             break;
         case SDL_MOUSEBUTTONUP:
             is_mouse_down = false;
@@ -195,15 +195,11 @@ void handle_app_events(App* app)
 
 void update_app(App* app)
 {
-    double current_time;
-    double elapsed_time;
-
-    current_time = (double)SDL_GetTicks() / 1000;
-    elapsed_time = current_time - app->uptime;
+    double current_time = (double)SDL_GetTicks() / 1000;
+    double elapsed_time = current_time - app->uptime;
     app->uptime = current_time;
 
     update_camera(&(app->camera), &(app->scene.map), elapsed_time);
-    update_scene(&(app->scene));
 
     if (app->is_building) {
         app->build_timer += elapsed_time;
@@ -222,6 +218,9 @@ void update_app(App* app)
         }
     }
 
+    character_update(&app->scene.character, &app->scene.map, elapsed_time);
+    character_set_view(&app->scene.character, &app->camera);
+    update_scene(&app->scene, elapsed_time);  // also fixed: was current_time, should be elapsed_time
 }
 
 void render_app(App* app)
