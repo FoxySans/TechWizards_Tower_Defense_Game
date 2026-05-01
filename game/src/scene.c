@@ -1,39 +1,53 @@
 #include "scene.h"
 #include <GL/gl.h>
 #include "enemy_manager.h"
+<<<<<<< HEAD
 #include <math.h>
+=======
+#include <obj/load.h>
+#include <obj/draw.h>
+
+
+>>>>>>> 4285e28 (scientist model loaded)
 void init_scene(Scene* scene)
 {
     map_load(&scene->map);
-    
+    load_model(&(scene->character),"assets/models/scientist.obj");
+    scene->texture_id=load_texture("assets/textures/texture.png");
 //TESZT
     enemy_manager_init(&scene->map);
 
 //TESZT
+<<<<<<< HEAD
 
     spawn_enemy(ENEMY_BASIC, 2);
     spawn_enemy(ENEMY_FAST, 1);
     spawn_enemy(ENEMY_TANK, 3);
     spawn_enemy(ENEMY_BASIC, 2);
     spawn_enemy(ENEMY_FAST, 1);
+=======
+    spawn_enemy(ENEMY_BASIC, 5);
+    spawn_enemy(ENEMY_FAST, 3);
+    spawn_enemy(ENEMY_TANK, 2);
+>>>>>>> 4285e28 (scientist model loaded)
 
 }
 
 void update_scene(Scene* scene)
 {
     (void)scene;
-    
-    
-    
     update_enemies(&scene->map, 0.016);
-
-
 }
 
 void render_scene(const Scene* scene, float cam_rot_z)
 {
     render_map(&scene->map);
+<<<<<<< HEAD
     render_enemies(cam_rot_z);
+=======
+    render_enemies();
+    draw_model(&(scene->character));
+>>>>>>> 4285e28 (scientist model loaded)
 }
 
 void render_map(const Map* map)
@@ -45,6 +59,17 @@ void render_map(const Map* map)
             Tile* t = map_get_tile((Map*)map, col, row);
             if (!t) continue;
 
+<<<<<<< HEAD
+=======
+            switch (t->type) {
+                case TILE_GRASS: glColor3f(0.2f, 0.6f, 0.2f); break;
+                case TILE_PATH:  glColor3f(0.7f, 0.6f, 0.3f); break;
+                case TILE_BASE:  glColor3f(0.8f, 0.2f, 0.2f); break;
+                case TILE_WALL:  glColor3f(0.6f,0.2f,0.4f); break;
+                case TILE_SPAWN: glColor3f(1.3f,1.4f,1.4f); break;
+            }
+
+>>>>>>> 4285e28 (scientist model loaded)
             float x = col * tile_size;
             float y = row * tile_size;
 
@@ -71,6 +96,8 @@ void render_map(const Map* map)
                     case TILE_GRASS: glColor3f(0.2f, 0.6f, 0.2f); break;
                     case TILE_PATH:  glColor3f(0.7f, 0.6f, 0.3f); break;
                     case TILE_BASE:  glColor3f(0.8f, 0.2f, 0.2f); break;
+                    case TILE_WALL:  glColor3f(0.6f,0.2f,0.4f); break;
+                    case TILE_SPAWN: glColor3f(1.3f,1.4f,1.4f); break;
                     default:         glColor3f(0.5f, 0.5f, 0.5f); break;
                 }
                 draw_floor(x, y, 0.0f, tile_size);
@@ -169,4 +196,58 @@ void draw_cube(float x, float y, float z, float size)
         glVertex3f(x2, y2, z2);
         glVertex3f(x2, y,  z2);
     glEnd();
+}
+
+void render_character(Character* character, GLuint texture_id)
+{
+    Model* model = &(character->model);
+
+    glPushMatrix();
+
+    // 1. Transzformációk (Pozíció, Forgatás, Skálázás)
+    glTranslatef(character->position.x, character->position.y, character->position.z);
+    glRotatef(character->rotation, 0.0f, 1.0f, 0.0f);
+    
+    // Itt állítsd be a méretet (próbáld ki a 0.01f vagy 0.1f értékeket)
+    float s = 0.05f; 
+    glScalef(s, s, s);
+
+    // 2. Textúra beállítása
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glColor3f(1.0f, 1.0f, 1.0f); // Fehér alapszín, hogy a textúra színei érvényesüljenek
+
+    // 3. A MODELL KIRAJZOLÁSA (Végigmegyünk a háromszögeken)
+    glBegin(GL_TRIANGLES);
+    for (int i = 0; i < model->n_triangles; ++i) {
+        Triangle* tri = &(model->triangles[i]);
+
+        for (int v = 0; v < 3; ++v) {
+            // Normálvektor (fényeléshez)
+            int n_idx = tri->points[v].normal_index;
+            glNormal3f(
+                model->normals[n_idx].x,
+                model->normals[n_idx].y,
+                model->normals[n_idx].z
+            );
+
+            // Textúra koordináta
+            int t_idx = tri->points[v].texture_index;
+            glTexCoord2f(
+                model->texture_vertices[t_idx].u,
+                1.0f - model->texture_vertices[t_idx].v // OpenGL-ben gyakran invertálni kell a V-t
+            );
+
+            // Csúcspont pozíciója
+            int v_idx = tri->points[v].vertex_index;
+            glVertex3f(
+                model->vertices[v_idx].x,
+                model->vertices[v_idx].y,
+                model->vertices[v_idx].z
+            );
+        }
+    }
+    glEnd();
+
+    glPopMatrix();
 }
