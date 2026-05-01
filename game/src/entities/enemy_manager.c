@@ -21,8 +21,6 @@ static int spawn_index = 0;
 static double spawn_timer = 0.0;
 static double spawn_interval = 5.0;
 
-
-
 void enemy_manager_init(const Map* map)
 {
     enemy_count = 0;
@@ -34,11 +32,6 @@ void enemy_manager_init(const Map* map)
     enemy_build_pathmap(&pathmap, map);
 }
 
-
-
-
-
-
 void spawn_enemy(EnemyType type, int amount)
 {
     if (spawn_queue_count >= MAX_SPAWN_QUEUE)
@@ -48,11 +41,6 @@ void spawn_enemy(EnemyType type, int amount)
     spawn_queue[spawn_queue_count].remaining = amount;
     spawn_queue_count++;
 }
-
-
-
-
-
 
 void update_enemies(const Map* map, double dt)
 {
@@ -78,14 +66,10 @@ void update_enemies(const Map* map, double dt)
             spawn_index++;
         }
     }
-
-    
     for (int i = 0; i < enemy_count; i++) {
         enemy_update(&enemies[i], map, &pathmap, dt);
     }
 }
-
-
 
 void render_enemies(float cam_rot_z)
 {

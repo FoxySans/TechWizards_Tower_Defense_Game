@@ -77,8 +77,6 @@ void enemy_build_pathmap(PathMap* pm, const Map* map)
     }
 }
 
-
-
 void enemy_init(Enemy* e, const Map* map, const PathMap* pm, EnemyType type)
 {
     e->col = map->spawn.x;
@@ -102,7 +100,6 @@ void enemy_init(Enemy* e, const Map* map, const PathMap* pm, EnemyType type)
     
     choose_next_tile(e, pm);
 }
-
 
 static void choose_next_tile(Enemy* e, const PathMap* pm)
 {
@@ -129,8 +126,6 @@ static void choose_next_tile(Enemy* e, const PathMap* pm)
         }
     }
 }
-
-
 
 void enemy_update(Enemy* e, const Map* map, const PathMap* pm, double dt)
 {
@@ -175,12 +170,6 @@ e->x += (dx / dist) * e->speed * dt;
 e->y += (dy / dist) * e->speed * dt;
 }
 
-    
-
-
-
-
-
 void enemy_damage(Enemy* e, int dmg)
 {
     if (!e->alive) return;
@@ -191,7 +180,6 @@ void enemy_damage(Enemy* e, int dmg)
         e->alive = false;
     }
 }
-
 
 void enemy_render(const Enemy* e, float cam_rot_z)
 {

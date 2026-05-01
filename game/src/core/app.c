@@ -1,4 +1,4 @@
-#include "app.h"
+#include "core/app.h"
 #include <stdio.h>
 #include <math.h>   
 #include <SDL2/SDL_image.h>
@@ -169,6 +169,10 @@ void handle_app_events(App* app)
                 break;
             case SDL_SCANCODE_LSHIFT:
                 character_set_sprint(&app->scene.character, false);  // was set_camera_sprint
+                break;
+            case SDL_SCANCODE_E:
+                app->is_building=false;
+                app->build_timer=0.0f;
                 break;
             default:
                 break;
@@ -365,6 +369,8 @@ void destroy_app(App* app)
     if (app->window != NULL) {
         SDL_DestroyWindow(app->window);
     }
+
+    free(app->scene.character.model);
 
     SDL_Quit();
 }

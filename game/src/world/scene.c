@@ -9,6 +9,12 @@ void init_scene(Scene* scene)
 {
     map_load(&scene->map);
     character_init(&scene->character, 0.5f, 1.5f, EYE_HEIGHT);
+    enemy_manager_init(&scene->map);
+    spawn_enemy(ENEMY_BASIC, 2);
+    spawn_enemy(ENEMY_FAST, 1);
+    spawn_enemy(ENEMY_TANK, 3);
+    spawn_enemy(ENEMY_BASIC, 2);
+    spawn_enemy(ENEMY_FAST, 1);
 
     scene->character.model = (Model*)malloc(sizeof(Model));
     init_model(scene->character.model);
@@ -21,10 +27,10 @@ void update_scene(Scene* scene, double dt)
     update_enemies(&scene->map, dt);
 }
 
-void render_scene(const Scene* scene)
+void render_scene(const Scene* scene, float cam_rot_z)
 {
     render_map(&scene->map);
-    render_enemies();
+    render_enemies(cam_rot_z);
     character_render(&scene->character);
 }
 
@@ -125,3 +131,4 @@ void draw_cube(float x, float y, float z, float size)
         glVertex3f(x2, y,  z2);
     glEnd();
 }
+
