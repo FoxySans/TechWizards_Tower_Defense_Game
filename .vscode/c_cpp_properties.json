@@ -1,16 +1,17 @@
 {
     "configurations": [
         {
-            "name": "windows-gcc-x64",
+            "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "C:\\Users\\au095304\\Documents\\c_sdk_220203\\MinGW\\bin",
+                "C:\\Users\\au095304\\Documents\\c_sdk_220203\\MinGW\\include\\GL",
+                "C:/Users/szesz/Documents/c_sdk_220203/MinGW/bin/gcc.exe"
             ],
-            "compilerPath": "C:/Users/szesz/Documents/c_sdk_220203/MinGW/bin/gcc.exe",
-            "cStandard": "${default}",
-            "cppStandard": "${default}",
-            "intelliSenseMode": "windows-gcc-x64",
-            "compilerArgs": [
-                ""
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
             ]
         }
     ],
