@@ -108,8 +108,8 @@ void character_render(const Character* c)
 
     glPushMatrix();
         glTranslatef(c->x, c->y, c->z - EYE_HEIGHT + bob);
-        glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
         glRotatef(c->angle + 180.0f, 0.0f, 0.0f, 1.0f);
+        glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
         glScalef(c->model_scale, c->model_scale, c->model_scale);
 
         glBindTexture(GL_TEXTURE_2D, c->texture_id);

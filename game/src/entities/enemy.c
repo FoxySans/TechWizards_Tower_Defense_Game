@@ -130,13 +130,6 @@ static void choose_next_tile(Enemy* e, const PathMap* pm)
 void enemy_update(Enemy* e, const Map* map, const PathMap* pm, double dt)
 {
 
-printf(
-    "enemy (%d,%d) next (%d,%d) dist=%d\n",
-    e->col, e->row,
-    e->next_col, e->next_row,
-    pm->dist[e->col][e->row]
-);
-
 if (!e->alive || e->reached_base)
     return;
 

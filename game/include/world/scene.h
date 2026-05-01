@@ -24,6 +24,9 @@ typedef struct Scene {
     Character character;
     GamePhase phase;
     GamePhase previous_phase;
+    Model towers[2];
+    GLuint texture_id;
+    GLuint tower_textures[2];
     int       lives;
     int       gold;
     int       wave;
@@ -35,7 +38,7 @@ typedef struct Scene {
 void init_scene(Scene* scene);
 void update_scene(Scene* scene, double dt);
 void render_scene(const Scene* scene, float cam_rot_z);
-void render_map(const Map* map);
+void render_map(const Map* map, const Scene* scene);
 void render_character(Character* character, GLuint texture_id);
 void draw_floor(float x, float y, float z, float size);
 void draw_cube(float x, float y, float z, float size);
