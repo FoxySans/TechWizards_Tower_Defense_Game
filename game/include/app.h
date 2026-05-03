@@ -3,6 +3,7 @@
 
 #include "camera.h"
 #include "scene.h"
+#include "menu.h"
 
 #include <SDL2/SDL.h>
 

@@ -3,16 +3,19 @@
 
 #include "camera.h"
 #include "map.h"
+#include <SDL_ttf.h>
 
 typedef enum GamePhase{
 PHASE_MENU,
-PHASE_MAP_SELECT
+PHASE_MAP_SELECT,
+PHASE_GAMEPLAY
 } GamePhase;
 
 typedef struct Scene {
     Map map;
     TTF_Font* font;
     int selected_map;
+    GamePhase phase;
 } Scene;
 
 void init_scene(Scene* scene);

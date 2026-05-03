@@ -99,9 +99,44 @@ void handle_app_events(App* app)
     int y;
 
     while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT) app->is_running = false;
+
+    // Route input through phase check
+    if (app->scene.phase != PHASE_GAMEPLAY) {
+        handle_menu_input(&app->scene, &event, &app->is_running);
+    } else {
         switch (event.type) {
         case SDL_KEYDOWN:
             switch (event.key.keysym.scancode) {
+                 case SDLK_UP:
+            scene->selected_map--;
+            // Wrap around or clamp logic
+            if (scene->selected_map < 0) scene->selected_map = 1; 
+            break;
+
+        case SDLK_DOWN:
+            scene->selected_map++;
+            if (scene->selected_map > 1) scene->selected_map = 0;
+            break;
+
+        case SDLK_ESCAPE:
+            // Requirement: Route back to menu
+            scene->phase = PHASE_MENU;
+            break;
+
+        case SDLK_RETURN:
+            if (scene->phase == PHASE_MENU) {
+                if (scene->selected_map == 0) {
+                    scene->phase = PHASE_MAP_SELECT;
+                    scene->selected_map = 0; // Reset index for map list
+                } else if (scene->selected_map == 1) {
+                    // Technical note: Quit button sets is_running = false
+                    *is_running = false;
+                }
+            } else if (scene->phase == PHASE_MAP_SELECT) {
+                // Logic to load selected map and start game
+                scene->phase = PHASE_GAMEPLAY; 
+            }
             case SDL_SCANCODE_ESCAPE:
                 app->is_running = false;
                 break;
@@ -167,6 +202,7 @@ void handle_app_events(App* app)
         default:
             break;
         }
+    }
     }
 }
 
