@@ -4,6 +4,7 @@
 #include "camera.h"
 #include "map.h"
 #include <SDL2/SDL_ttf.h>
+#include "menu.h"
 
 typedef enum GamePhase{
 PHASE_MENU,
@@ -18,13 +19,11 @@ typedef struct Scene {
     GamePhase phase;
 } Scene;
 
-#include "menu.h"
+
 
 void init_scene(Scene* scene, SDL_Renderer* renderer);
 void update_scene(Scene* scene);
 void render_scene(const Scene* scene);
 void render_map(const Map* map);
-void draw_floor(float x, float y, float z, float size);
-void draw_cube(float x, float y, float z, float size);
 
 #endif

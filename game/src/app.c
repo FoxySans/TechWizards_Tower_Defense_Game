@@ -30,6 +30,7 @@ void init_app(App* app, int width, int height)
         printf("[ERROR] Unable to create the OpenGL context!\n");
         return;
     }
+    glViewport(0, 0, width, height);
     app->renderer = SDL_CreateRenderer(app->window, -1, SDL_RENDERER_ACCELERATED);
     init_opengl();
     reshape(width, height);
@@ -62,31 +63,22 @@ void init_opengl()
 
 void reshape(GLsizei width, GLsizei height)
 {
-    int x, y, w, h;
-    double ratio;
-
-    ratio = (double)width / height;
-    if (ratio > VIEWPORT_RATIO) {
-        w = (int)((double)height * VIEWPORT_RATIO);
-        h = height;
-        x = (width - w) / 2;
-        y = 0;
-    }
-    else {
-        w = width;
-        h = (int)((double)width / VIEWPORT_RATIO);
-        x = 0;
-        y = (height - h) / 2;
-    }
-
-    glViewport(x, y, w, h);
+    glViewport(0, 0, width, height); //[cite: 7]
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+
+    // 16:9 ratio is 1.77
+    double aspect = (double)width / (double)height;
+    
+    // We adjust the left/right based on the aspect ratio to prevent stretching
+    double fov_size = 0.08; 
     glFrustum(
-        -.08, .08,
-        -.06, .06,
-        .1, 1000
+        -fov_size * aspect, fov_size * aspect, // Scale width by aspect[cite: 7]
+        -0.06, 0.06,
+        0.1, 1000
     );
+    
+    glMatrixMode(GL_MODELVIEW);
 }
 
 void handle_app_events(App* app)
@@ -209,7 +201,7 @@ void render_app(App* app)
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
-        // Set coordinates to match window pixels (e.g., 0 to 800, 600 to 0)
+        
         glOrtho(0, 1920, 1080, 0, -1, 1); 
         
         glMatrixMode(GL_MODELVIEW);

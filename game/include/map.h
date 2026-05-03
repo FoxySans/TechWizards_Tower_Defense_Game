@@ -3,8 +3,10 @@
 
 #define MAP_WIDTH  20
 #define MAP_HEIGHT 15
-
+#include <GL/gl.h>
 #include "types.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 typedef enum {
     TILE_GRASS,      // építhető, ellenség nem jár itt
@@ -28,5 +30,7 @@ typedef struct {
 void map_load(Map *map);
 Tile* map_get_tile(Map *map, int col, int row);
 int   map_is_buildable(Map *map, int col, int row);
+void draw_floor(float x, float y, float z, float size);
+void draw_cube(float x, float y, float z, float size);
 
 #endif
