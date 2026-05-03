@@ -1,7 +1,7 @@
 #include "scene.h"
 #include <GL/gl.h>
 
-void init_scene(Scene* scene)
+void init_scene(Scene* scene, SDL_Renderer* renderer)
 {
     if (TTF_Init() == -1) {
         printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
@@ -12,7 +12,7 @@ void init_scene(Scene* scene)
     if (!scene->font) {
         printf("Failed to load font! SDL_ttf Error: %s\n", TTF_GetError());
     }
-
+    render_menu(scene,renderer);
     scene->phase = PHASE_MENU;
     scene->selected_map = 0;
     map_load(&scene->map);

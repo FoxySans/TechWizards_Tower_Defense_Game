@@ -18,6 +18,7 @@ typedef struct App
 {
     SDL_Window* window;
     SDL_GLContext gl_context;
+    SDL_Renderer* renderer;
     bool is_running;
     double uptime;
     Camera camera;

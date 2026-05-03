@@ -30,12 +30,12 @@ void init_app(App* app, int width, int height)
         printf("[ERROR] Unable to create the OpenGL context!\n");
         return;
     }
-
+    app->renderer = SDL_CreateRenderer(app->window, -1, SDL_RENDERER_ACCELERATED);
     init_opengl();
     reshape(width, height);
     SDL_SetRelativeMouseMode(SDL_TRUE);
     init_camera(&(app->camera));
-    init_scene(&(app->scene));
+    init_scene(&(app->scene),app->renderer);
 
     app->uptime = (double)SDL_GetTicks() / 1000;
     app->is_running = true;
@@ -103,8 +103,10 @@ void handle_app_events(App* app)
 
     // Route input through phase check
     if (app->scene.phase != PHASE_GAMEPLAY) {
+        SDL_SetRelativeMouseMode(SDL_FALSE);
         handle_menu_input(&app->scene, &event, &app->is_running);
     } else {
+        SDL_SetRelativeMouseMode(SDL_TRUE);
         switch (event.type) {
         case SDL_KEYDOWN:
             switch (event.key.keysym.scancode) {
@@ -193,12 +195,41 @@ void update_app(App* app)
 void render_app(App* app)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    // 1. Render 3D Gameplay
     glMatrixMode(GL_MODELVIEW);
-
     glPushMatrix();
     set_view(&(app->camera));
     render_scene(&(app->scene));
     glPopMatrix();
+
+    // 2. Render 2D UI Overlay
+    if (app->scene.phase != PHASE_GAMEPLAY) {
+        // Switch to 2D Projection
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        // Set coordinates to match window pixels (e.g., 0 to 800, 600 to 0)
+        glOrtho(0, 1920, 1080, 0, -1, 1); 
+        
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+
+        glDisable(GL_DEPTH_TEST);
+        glColor3f(1.0f, 1.0f, 1.0f);
+        // Call menu rendering here
+        if (app->scene.phase == PHASE_MENU) {
+            render_menu(&(app->scene), app->renderer);
+        } else if (app->scene.phase == PHASE_MAP_SELECT) {
+            render_map_select(&(app->scene), app->renderer);
+        }
+        glEnable(GL_DEPTH_TEST);
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
+    }
 
     SDL_GL_SwapWindow(app->window);
 }
