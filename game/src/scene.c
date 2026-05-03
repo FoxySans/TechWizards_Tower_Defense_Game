@@ -3,6 +3,18 @@
 
 void init_scene(Scene* scene)
 {
+    if (TTF_Init() == -1) {
+        printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
+    }
+
+    // Load the font (Requirement: assets/fonts/ folder with a .ttf file)
+    scene->font = TTF_OpenFont("assets/fonts/font.ttf", 24);
+    if (!scene->font) {
+        printf("Failed to load font! SDL_ttf Error: %s\n", TTF_GetError());
+    }
+
+    scene->phase = PHASE_MENU;
+    scene->selected_map = 0;
     map_load(&scene->map);
 }
 

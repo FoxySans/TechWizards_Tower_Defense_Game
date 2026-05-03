@@ -13,6 +13,7 @@ void draw_text(Scene* scene, SDL_Renderer* renderer, const char* text, int x, in
 }
 
 void render_menu(Scene* scene, SDL_Renderer* renderer) {
+    
     SDL_Color white = {255, 255, 255, 255};
     SDL_Color highlight = {255, 255, 0, 255}; // Yellow for selection
 
