@@ -1,5 +1,9 @@
 TechWizards csapat tagjai :
 - Szesztai Péter
+    - Crosshair
+    - Tower placement/Building mechanic
+    - HP bar
+    - Tower selection mechanic
 - Pejkó Bálint: 
     - Kamera/játékos mozgatás
     - Pálya generálás
