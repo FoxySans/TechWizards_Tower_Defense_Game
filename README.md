@@ -1,6 +1,9 @@
 TechWizards csapat tagjai :
 - Szesztai Péter
-- Pejkó Bálint
+- Pejkó Bálint: 
+    - Kamera/játékos mozgatás
+    - Pálya generálás
+    - Model betöltés
 - Forinyák Judit Virág
 - Tóth Beáta Georgina
 - Major Ádám
