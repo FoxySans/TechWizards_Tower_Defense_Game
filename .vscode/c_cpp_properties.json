@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**"
             ],
-            "compilerPath": "C:/Users/szesz/Documents/c_sdk_220203/MinGW/bin/gcc.exe",
+            "compilerPath": "C:/Users/Balint/Documents/c_sdk_220203/MinGW/bin/gcc.exe",
             "cStandard": "${default}",
             "cppStandard": "${default}",
             "intelliSenseMode": "windows-gcc-x64",

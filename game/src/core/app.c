@@ -1,4 +1,4 @@
-#include "app.h"
+#include "core/app.h"
 #include <stdio.h>
 #include <math.h>   
 #include <SDL2/SDL_image.h>
@@ -6,7 +6,6 @@
 void init_app(App* app, int width, int height)
 {
     int error_code;
-    int inited_loaders;
     app->is_building = false;
     app->build_timer = 0.0f;
     app->build_threshold = 1.5f;
@@ -93,14 +92,17 @@ void reshape(GLsizei width, GLsizei height)
     );
 }
 
+void set_lightning(){
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_COLOR_MATERIAL);
+}
+
 void handle_app_events(App* app)
 {
     SDL_Event event;
     static bool is_mouse_down = false;
-    static int mouse_x = 0;
-    static int mouse_y = 0;
-    int x;
-    int y;
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -170,6 +172,10 @@ void handle_app_events(App* app)
             case SDL_SCANCODE_LSHIFT:
                 character_set_sprint(&app->scene.character, false);  // was set_camera_sprint
                 break;
+            case SDL_SCANCODE_E:
+                app->is_building=false;
+                app->build_timer=0.0f;
+                break;
             default:
                 break;
             }
@@ -227,15 +233,10 @@ void render_app(App* app)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
-
+    
     glPushMatrix();
     set_view(&(app->camera));
     render_scene(&(app->scene), app->camera.rotation.z);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_BLEND);
-
     glPopMatrix();
 
     // 2D Overlay Section
@@ -365,6 +366,8 @@ void destroy_app(App* app)
     if (app->window != NULL) {
         SDL_DestroyWindow(app->window);
     }
+
+    free(app->scene.character.model);
 
     SDL_Quit();
 }
