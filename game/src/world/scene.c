@@ -5,6 +5,7 @@
 #include <obj/draw.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 void init_scene(Scene* scene)
 {
@@ -37,36 +38,45 @@ void init_scene(Scene* scene)
     spawn_enemy(ENEMY_TANK, 3);
 }
 
+// Inside render_shots in scene.c
 void render_shots(Scene* scene, double dt) {
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
     glDisable(GL_TEXTURE_2D);
     for (int i = 0; i < scene->shot_count; i++) {
         ShotEffect* s = &scene->shots[i];
         
         if (s->type == 0) { // RED TOWER: Laser
-            glColor3f(1.0f, 0.0f, 0.0f); // Bright Red
-            glLineWidth(3.0f);
+            glColor3f(1.0f, 0.0f, 0.0f);
+            glLineWidth(6.0f);
             glBegin(GL_LINES);
                 glVertex3f(s->x1, s->y1, s->z1);
                 glVertex3f(s->x2, s->y2, s->z2);
             glEnd();
-        } else { // BLUE TOWER: Rectangle Bullet
-            glColor3f(0.0f, 0.8f, 1.0f); // Cyan
+        } else { // BLUE TOWER: Traveling Bullet
+            // Calculate progress (0.0 at start, 1.0 at end)
+            float t = 1.0f - (s->duration / 0.2f); 
+            if (t < 0) t = 0; if (t > 1) t = 1;
+
+            // Interpolate position
+            float curr_x = s->x1 + (s->x2 - s->x1) * t;
+            float curr_y = s->y1 + (s->y2 - s->y1) * t;
+            float curr_z = s->z1 + (s->z2 - s->z1) * t;
+
+            glColor3f(0.0f, 0.8f, 1.0f);
             glPushMatrix();
-                glTranslatef(s->x2, s->y2, s->z2); // Draw at enemy position
-                // Draw a small 0.1 sized rectangle
+                glTranslatef(curr_x, curr_y, curr_z);
                 draw_cube(-0.05f, -0.05f, 0, 0.1f); 
             glPopMatrix();
         }
 
         s->duration -= (float)dt;
         if (s->duration <= 0) {
-            // Remove shot by swapping with last element
             scene->shots[i] = scene->shots[--scene->shot_count];
             i--;
         }
     }
     glEnable(GL_TEXTURE_2D);
-    glColor3f(1, 1, 1); // Reset color
+    glPopAttrib();
 }
 
 void update_towers(Scene* scene, double dt)
@@ -76,43 +86,38 @@ void update_towers(Scene* scene, double dt)
         t->reload_timer -= (float)dt;
 
         if (t->reload_timer <= 0) {
-            // BLUE TOWER: Targets 3 enemies, Fast fire rate, Low damage
             if (t->type == TILE_TOWER_BLUE) {
                 int hits = 0;
                 for (int j = 0; j < 3; j++) {
-                    // find_best_enemy uses path distance to prioritize targets
                     Enemy* target = find_best_enemy(t->x + 0.5f, t->y + 0.5f, 4.0f);
                     if (target) {
-                        enemy_damage(target, 10); //
+                        enemy_damage(target, 2);
                         hits++;
 
-                        // Spawn Blue Bullet effect
                         if (scene->shot_count < 128) {
                             ShotEffect* s = &scene->shots[scene->shot_count++];
-                            s->type = 1; // 1 = Bullet
-                            s->x1 = t->x + 0.5f; s->y1 = t->y + 0.5f; s->z1 = 0.8f;
+                            s->type = 1;
+                            s->x1 = t->x + 0.5f; s->y1 = t->y + 0.5f; s->z1 = 1.5f; 
                             s->x2 = target->x;   s->y2 = target->y;   s->z2 = 0.3f;
-                            s->duration = 0.08f; // Short flash for fast bullets
+                            s->duration = 0.25f; // Slightly longer so we see it travel
                         }
                     }
                 }
-                if (hits > 0) t->reload_timer = 0.4f;
+                if (hits > 0) t->reload_timer = 0.25f;
             } 
-            // RED TOWER: Targets 1 enemy, Slow fire rate, High damage
             else if (t->type == TILE_TOWER_RED) {
                 Enemy* target = find_best_enemy(t->x + 0.5f, t->y + 0.5f, 6.0f);
                 if (target) {
-                    enemy_damage(target, 50); //
-
-                    // Spawn Red Laser effect
+                    enemy_damage(target, 60);
                     if (scene->shot_count < 128) {
                         ShotEffect* s = &scene->shots[scene->shot_count++];
-                        s->type = 0; // 0 = Laser
-                        s->x1 = t->x + 0.5f; s->y1 = t->y + 0.5f; s->z1 = 0.8f;
+                        s->type = 0;
+                        
+                        s->x1 = t->x + 0.5f; s->y1 = t->y + 0.5f; s->z1 = 1.5f; 
                         s->x2 = target->x;   s->y2 = target->y;   s->z2 = 0.3f;
-                        s->duration = 0.15f; // Longer duration for the laser beam
+                        s->duration = 0.3f; 
                     }
-                    t->reload_timer = 1.5f;
+                    t->reload_timer = 5.5f;
                 }
             }
         }
@@ -165,6 +170,14 @@ void render_map(const Map* map, const Scene* scene)
                 glColor3f(0.2f, 0.6f, 0.2f);  
                 draw_cube(x, y, 0.0f, tile_size);
 
+                if (t->type == TILE_TOWER_RED) {
+                        glColor3f(1.0f, 0.0f, 0.0f);
+                        draw_range_circle(x + 0.5f, y + 0.5f, 0.26f, 6.0f);
+                    } else {
+                        glColor3f(0.0f, 0.8f, 1.0f);
+                        draw_range_circle(x + 0.5f, y + 0.5f, 0.26f, 4.0f);
+                    }
+
                 int idx = (t->type == TILE_TOWER_RED) ? 0 : 1;
                 glPushMatrix();
                     glTranslatef(x + 0.5f, y + 0.5f, 0.25f);
@@ -181,6 +194,7 @@ void render_map(const Map* map, const Scene* scene)
                     }
                     draw_model(&scene->towers[idx]);
                     glDisable(GL_TEXTURE_2D);
+                    glLineWidth(2.0f);
                 glPopMatrix();
             }
             else {
@@ -196,6 +210,19 @@ void render_map(const Map* map, const Scene* scene)
             }
         }
     }
+}
+
+void draw_range_circle(float cx, float cy, float cz, float radius) {
+    int segments = 64;
+    glBegin(GL_LINE_LOOP);
+    for (int i = 0; i < segments; i++) {
+        float theta = 2.0f * 3.1415926f * (float)i / (float)segments;
+        // x and y vary to create the circle, z stays at the floor/base height
+        float x = cx + (radius * cosf(theta));
+        float y = cy + (radius * sinf(theta));
+        glVertex3f(x, y, cz); 
+    }
+    glEnd();
 }
 
 void draw_floor(float x, float y, float z, float size)

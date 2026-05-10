@@ -32,5 +32,6 @@ void map_load(Map *map);
 Tile* map_get_tile(Map *map, int col, int row);
 int   map_is_buildable(Map *map, int col, int row);
 void map_upgrade_to_tower(Map* map, int col, int row, int tower_type);
+void sell_tower(Map* map, int col, int row);
 
 #endif

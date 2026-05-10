@@ -93,3 +93,10 @@ void map_upgrade_to_tower(Map* map, int col, int row, int tower_type) {
     }
 }
 
+void sell_tower(Map* map, int col, int row){
+    Tile* t = map_get_tile(map, col, row);
+    if (t && t->type == TILE_TOWER_BLUE || t && t->type == TILE_TOWER_RED) {
+        t->type = TILE_WALL;
+    }
+}
+

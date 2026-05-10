@@ -55,6 +55,8 @@ void update_app(App* app);
 
 void draw_ui_circle(float x, float y, float radius, int segments);
 
+void sell_tower_at_crosshair(App* app);
+
 /**
  * Render the application.
  */

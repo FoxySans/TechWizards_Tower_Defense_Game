@@ -50,5 +50,6 @@ void start_combat(Scene* scene);
 void update_towers(Scene* scene, double dt);
 void add_active_tower(Scene* scene, int col, int row, int type);
 void render_shots(Scene* scene, double dt);
+void draw_range_circle(float cx, float cy, float cz, float radius);
 
 #endif

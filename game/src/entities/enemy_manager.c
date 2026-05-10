@@ -12,14 +12,14 @@ typedef struct {
     int remaining;
 } SpawnEntry;
 
-#define MAX_SPAWN_QUEUE 16
+#define MAX_SPAWN_QUEUE 128
 
 static SpawnEntry spawn_queue[MAX_SPAWN_QUEUE];
 static int spawn_queue_count = 0;
 static int spawn_index = 0;
 
 static double spawn_timer = 0.0;
-static double spawn_interval = 5.0;
+static double spawn_interval = 3.0;
 
 void enemy_manager_init(const Map* map)
 {

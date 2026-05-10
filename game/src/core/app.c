@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <math.h>   
 #include <SDL2/SDL_image.h>
+#include "entities/enemy_manager.h"
 
 void init_app(App* app, int width, int height)
 {
@@ -138,6 +139,21 @@ void handle_app_events(App* app)
                         app->is_building = false;
                     }
                 break;
+            case SDL_SCANCODE_I:
+                printf("Spawning Basic Enemy\n");
+                spawn_enemy(ENEMY_BASIC, 1);
+                break;
+            case SDL_SCANCODE_O:
+                printf("Spawning Fast Enemy\n");
+                spawn_enemy(ENEMY_FAST, 1);
+                break;
+            case SDL_SCANCODE_P:
+                printf("Spawning Tank Enemy\n");
+                spawn_enemy(ENEMY_TANK, 1);
+                break;
+            case SDL_SCANCODE_Q:
+                sell_tower_at_crosshair(app);
+                break;
             case SDL_SCANCODE_LSHIFT:
                 character_set_sprint(&app->scene.character, true);
                 break;
@@ -207,22 +223,27 @@ void update_app(App* app)
 
     update_camera(&(app->camera), &(app->scene.map), elapsed_time);
 
+    // Corrected Building Logic
     if (app->is_building) {
         app->build_timer += elapsed_time;
 
         if (app->build_timer >= app->build_threshold) {
-            // THE BUILD TRIGGER
+            // 1. Calculate the coordinates of the wall in front of the player
             double angle = degree_to_radian(app->camera.rotation.z);
-            float target_x = app->camera.position.x + cos(angle) * 2.0f;
-            float target_y = app->camera.position.y + sin(angle) * 2.0f;
-            int col = (int)app->camera.position.x; 
-            int row = (int)app->camera.position.y;
-            
-            map_upgrade_to_tower(&app->scene.map, (int)target_x, (int)target_y, app->selected_tower_type);
+            float look_dist = 2.0f;
+            int col = (int)floor(app->camera.position.x + cos(angle) * look_dist);
+            int row = (int)floor(app->camera.position.y + sin(angle) * look_dist);
 
-            add_active_tower(&app->scene, col, row, app->selected_tower_type);
+            // 2. Only build and register the tower if we are looking at a WALL
+            Tile* target_tile = map_get_tile(&app->scene.map, col, row);
+            if (target_tile && target_tile->type == TILE_WALL) {
+                // Change the visual map tile
+                map_upgrade_to_tower(&app->scene.map, col, row, app->selected_tower_type);
+                // Register the shooting logic at the TOWER'S position (col, row), not the player's!
+                add_active_tower(&app->scene, col, row, app->selected_tower_type);
+            }
             
-            // Reset after successful build so they have to press again
+            // Reset building state
             app->is_building = false; 
             app->build_timer = 0.0f;
         }
@@ -230,7 +251,7 @@ void update_app(App* app)
 
     character_update(&app->scene.character, &app->scene.map, elapsed_time);
     character_set_view(&app->scene.character, &app->camera);
-    update_scene(&app->scene, elapsed_time);  // also fixed: was current_time, should be elapsed_time
+    update_scene(&app->scene, elapsed_time);
 }
 
 void render_app(App* app)
@@ -280,8 +301,45 @@ void render_app(App* app)
     SDL_GL_SwapWindow(app->window);
 }
 
-void draw_crosshair(App* app)
-{
+void sell_tower_at_crosshair(App* app) {
+    // 1. Calculate the grid coordinates (col, row) the player is looking at
+    // We use a look distance of 2.0 to match the building mechanic
+    double angle = degree_to_radian(app->camera.rotation.z);
+    float look_dist = 2.0f;
+    int col = (int)floor(app->camera.position.x + cos(angle) * look_dist);
+    int row = (int)floor(app->camera.position.y + sin(angle) * look_dist);
+
+    // 2. Retrieve the tile at those coordinates
+    Tile* t = map_get_tile(&app->scene.map, col, row);
+    
+    // 3. Check if the targeted tile is actually a tower
+    if (t && (t->type == TILE_TOWER_RED || t->type == TILE_TOWER_BLUE)) {
+        printf("Selling tower at [%d, %d]\n", col, row);
+        
+        // 4. Update the map to revert the tile back to a buildable wall
+        sell_tower(&app->scene.map, col, row);
+
+        // 5. Remove the tower from the active logic list in the scene
+        for (int i = 0; i < app->scene.active_tower_count; i++) {
+            if (app->scene.active_towers[i].x == col && 
+                app->scene.active_towers[i].y == row) {
+                
+                // Replace the sold tower with the last tower in the array
+                // and decrement the count to effectively delete it
+                app->scene.active_towers[i] = app->scene.active_towers[app->scene.active_tower_count - 1];
+                app->scene.active_tower_count--;
+                
+                // 6. Refund gold to the player
+                app->scene.gold += 50;
+                break;
+            }
+        }
+    } else {
+        printf("No tower found at this position to sell.\n");
+    }
+}
+
+void draw_crosshair(App* app){
     // 1. Logic Math (Keep this at the top)
     double angle = degree_to_radian(app->camera.rotation.z);
     float look_dist = 2.0f;
@@ -290,6 +348,7 @@ void draw_crosshair(App* app)
 
     Tile* t = map_get_tile(&app->scene.map, (int)target_x, (int)target_y);
     bool buildable = (t && t->type == TILE_WALL);
+    bool sellable  = (t && (t->type == TILE_TOWER_RED || t->type == TILE_TOWER_BLUE));
 
     // 2. Enter 2D HUD Mode
     glMatrixMode(GL_PROJECTION);
@@ -304,9 +363,11 @@ void draw_crosshair(App* app)
 
     // 3. Draw the Crosshair Lines
     if (buildable) {
-        glColor3f(0.0f, 1.0f, 0.0f); // Green
+        glColor3f(0.0f, 1.0f, 0.0f);
+    } else if (sellable) {
+        glColor3f(1.0f, 0.0f, 0.0f);
     } else {
-        glColor3f(1.0f, 1.0f, 1.0f); // White
+        glColor3f(1.0f, 1.0f, 1.0f);
     }
 
     glLineWidth(2.0f);
