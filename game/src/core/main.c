@@ -21,7 +21,6 @@ int main(int argc, char* argv[]) {
     (void)argc; (void)argv;
 	
 	   init_app(&app, 1920, 1080); 
-	   // Windows esetén ez segít a konzolt fókuszban tartani az inicializálás után
 #ifdef _WIN32
     #include <windows.h>
     SetForegroundWindow(GetConsoleWindow());
@@ -79,18 +78,17 @@ int main(int argc, char* argv[]) {
                 loaded = map_load_from_file(&app.scene.map, filename);
                 
                 if (loaded) {
-                    // Egyedi pályára is küldünk "ajándékot"
                     spawn_enemy(ENEMY_BASIC, 6);
                     spawn_enemy(ENEMY_TANK, 1);
                 }
                 break;
             default:
-                printf("\n  [!] Nincs ilyen palya! Probald ujra.\n");
+                printf("\n Nincs ilyen palya! Probald ujra.\n");
                 break;
         }
         
         if (loaded) {
-            printf("  [OK] Sikeres betoltes!\n");
+            printf("Sikeres betoltes!\n");
         }
     }
 

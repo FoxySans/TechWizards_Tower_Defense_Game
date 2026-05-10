@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include "entities/enemy_manager.h"
 
-// Ez a függvény azért kell, hogy a scene.c hívása ne dobjon hibát
 void map_load(Map* map) {
     map_load_from_file(map, "maps/level1.txt");
 }
@@ -32,7 +31,6 @@ int map_load_from_file(Map* map, const char* filename) {
     }
     fclose(f);
 
-    // Frissítjük az ellenségek útvonalát az új térkép alapján
     enemy_manager_init(map);
     return 1;
 }
