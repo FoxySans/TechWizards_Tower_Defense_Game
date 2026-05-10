@@ -3,8 +3,9 @@
 #include "button.h"
 #include <GL/gl.h>
 #include <SDL2/SDL_mixer.h>
+#include <string.h> 
 
-// ─── Callback függvények ──────────────────────────────────────────
+// ─── Callback függvények (EGYSZER, a fájl elején!) ───────────────
 static void on_play_click(void* data) {
     Scene* scene = (Scene*)data;
     scene->phase = PHASE_MAP_SELECT;
@@ -16,40 +17,56 @@ static void on_quit_click(void* data) {
     *running = false;
 }
 
+static void on_map1_click(void* data) {
+    Scene* scene = (Scene*)data;
+    scene->selected_map = 0;
+    stop_music();
+    scene->phase = PHASE_GAMEPLAY;
+}
+
+static void on_map2_click(void* data) {
+    Scene* scene = (Scene*)data;
+    scene->selected_map = 1;
+    stop_music();
+    scene->phase = PHASE_GAMEPLAY;
+}
+
+static void on_map3_click(void* data) {
+    Scene* scene = (Scene*)data;
+    scene->selected_map = 2;
+    stop_music();
+    scene->phase = PHASE_GAMEPLAY;
+}
+
+static void on_back_click(void* data) {
+    Scene* scene = (Scene*)data;
+    scene->phase = PHASE_MENU;
+    scene->selected_map = 0;
+}
+
 // ─── Statikus gombok ──────────────────────────────────────────────
 static Button play_btn;
 static Button quit_btn;
-static bool buttons_initialized = false;
+static Button battle_pass_btn;
+static Button map1_btn;
+static Button map2_btn;
+static Button map3_btn;
+static Button back_btn;
+static bool menu_buttons_initialized = false;
+static bool map_buttons_initialized = false;
 
-// ---zene
+// ─── Zene globális változók ───────────────────────────────────────
 static Mix_Music* music = NULL;
 static bool music_initialized = false;
 
-static void init_menu_buttons(Scene* scene, bool* is_running) {
-    if (buttons_initialized) return;
-    
-    button_init(&play_btn, 850, 400, 220, 60, "PLAY");
-    play_btn.bg_color = (SDL_Color){50, 100, 200, 255};
-    play_btn.hover_color = (SDL_Color){80, 150, 255, 255};
-    play_btn.on_click = on_play_click;
-    play_btn.user_data = scene;
-    
-    button_init(&quit_btn, 850, 500, 220, 60, "QUIT");
-    quit_btn.bg_color = (SDL_Color){200, 50, 50, 255};
-    quit_btn.hover_color = (SDL_Color){255, 80, 80, 255};
-    quit_btn.on_click = on_quit_click;
-    quit_btn.user_data = is_running;
-    
-    buttons_initialized = true;
-}
-//-----zene inicializálása
+// ─── Zene inicializálása ─────────────────────────────────────────
 static void init_music(void)
 {
     if (music_initialized) return;
 
     int flags = Mix_Init(MIX_INIT_MP3);
-        if (!(flags & MIX_INIT_MP3)) {
-         printf("Mix_Init figyelmeztetes: %s\n", Mix_GetError());
+    if (!(flags & MIX_INIT_MP3)) {
+        printf("Mix_Init figyelmeztetes: %s\n", Mix_GetError());
     }
 
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
@@ -78,7 +95,8 @@ static void init_music(void)
     music_initialized = true;
     printf("Zene sikeresen elindult!\n");
 }
-// zene kikapcs
+
+// ─── Zene leállítása ─────────────────────────────────────────────
 void stop_music(void)
 {
     if (music) {
@@ -86,16 +104,71 @@ void stop_music(void)
         Mix_FreeMusic(music);
         music = NULL;
     }
-
-    Mix_CloseAudio();
-    Mix_Quit();
-    music_initialized = false;
+    if (music_initialized) {
+        Mix_CloseAudio();
+        Mix_Quit();
+        music_initialized = false;
+    }
 }
 
-// ─── draw_text (eredeti, változatlan) ─────────────────────────────
+// ─── Gombok inicializálása ───────────────────────────────────────
+static void init_menu_buttons(Scene* scene, bool* is_running) {
+    if (menu_buttons_initialized) return;
+    
+    button_init(&play_btn, 850, 400, 220, 60, "PLAY");
+    play_btn.bg_color = (SDL_Color){50, 100, 200, 255};
+    play_btn.hover_color = (SDL_Color){80, 150, 255, 255};
+    play_btn.on_click = on_play_click;
+    play_btn.user_data = scene;
+    
+    button_init(&quit_btn, 850, 500, 220, 60, "QUIT");
+    quit_btn.bg_color = (SDL_Color){200, 50, 50, 255};
+    quit_btn.hover_color = (SDL_Color){255, 80, 80, 255};
+    quit_btn.on_click = on_quit_click;
+    quit_btn.user_data = is_running;
+
+    button_init(&battle_pass_btn, 850, 600, 220, 100, "BATTLE PASS \n (COMING SOON)");
+    battle_pass_btn.bg_color = (SDL_Color){255, 0, 0, 255};
+    battle_pass_btn.hover_color = (SDL_Color){255, 80, 80, 255};
+    battle_pass_btn.user_data = scene; 
+    
+    menu_buttons_initialized = true;
+}
+
+static void init_map_buttons(Scene* scene) {
+    if (map_buttons_initialized) return;
+    
+    button_init(&map1_btn, 850, 200, 220, 60, "EASY");
+    map1_btn.bg_color = (SDL_Color){50, 150, 50, 255};
+    map1_btn.hover_color = (SDL_Color){80, 200, 80, 255};
+    map1_btn.on_click = on_map1_click;
+    map1_btn.user_data = scene;
+    
+    button_init(&map2_btn, 850, 300, 220, 60, "MEDIUM");
+    map2_btn.bg_color = (SDL_Color){50, 100, 150, 255};
+    map2_btn.hover_color = (SDL_Color){80, 150, 200, 255};
+    map2_btn.on_click = on_map2_click;
+    map2_btn.user_data = scene;
+    
+    button_init(&map3_btn, 810, 400, 300, 150, "HARD \n (COMING SOON)");
+    map3_btn.bg_color = (SDL_Color){150, 50, 150, 255};
+    map3_btn.hover_color = (SDL_Color){200, 80, 200, 255};
+    map3_btn.on_click = on_map3_click;
+    map3_btn.user_data = scene;
+    
+    button_init(&back_btn, 850, 630, 220, 60, "BACK");
+    back_btn.bg_color = (SDL_Color){100, 100, 100, 255};
+    back_btn.hover_color = (SDL_Color){150, 150, 150, 255};
+    back_btn.on_click = on_back_click;
+    back_btn.user_data = scene;
+    
+    map_buttons_initialized = true;
+}
+
+// ─── draw_text ────────────────────────────────────────────────────
 void draw_text(Scene* scene, SDL_Renderer* renderer, const char* text, int x, int y, SDL_Color color)
 {
-    (void)renderer; // Warning elnyomása
+    (void)renderer;
     
     if (!scene->font) return;
 
@@ -132,74 +205,173 @@ void draw_text(Scene* scene, SDL_Renderer* renderer, const char* text, int x, in
     SDL_FreeSurface(converted);
 }
 
+void draw_text_scaled(Scene* scene, SDL_Renderer* renderer, const char* text, int x, int y, SDL_Color color, float scale)
+{
+    (void)renderer;
+    
+    if (!scene->font) return;
+
+    SDL_Surface* surf = TTF_RenderText_Blended(scene->font, text, color);
+    if (!surf) return;
+
+    SDL_Surface* converted = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGBA32, 0);
+    SDL_FreeSurface(surf);
+    if (!converted) return;
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, converted->w, converted->h, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, converted->pixels);
+
+    // Skálázott méret
+    int w = (int)(converted->w * scale);
+    int h = (int)(converted->h * scale);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_TEXTURE_2D);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0, 0); glVertex2f(x, y);
+        glTexCoord2f(1, 0); glVertex2f(x + w, y);
+        glTexCoord2f(1, 1); glVertex2f(x + w, y + h);
+        glTexCoord2f(0, 1); glVertex2f(x, y + h);
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+
+    glDeleteTextures(1, &texture);
+    SDL_FreeSurface(converted);
+}
+
 // ─── render_menu ──────────────────────────────────────────────────
 void render_menu(Scene* scene, SDL_Renderer* renderer) {
     init_menu_buttons(scene, NULL);
     init_music();
     
-    // ─── BILLENTYŰZET NAVIGÁCIÓ SZINKRONIZÁLÁSA ─────────────────
-    // Ha a fel/le gombokkal navigáltak, szinkronizáljuk a gomb hover állapotát
     play_btn.hovered = (scene->selected_map == 0);
     quit_btn.hovered = (scene->selected_map == 1);
+    battle_pass_btn.hovered = (scene->selected_map == 2);
     
     SDL_Color white = {255, 255, 255, 255};
-    draw_text(scene, renderer, "MAIN MENU", 865, 200, white);
+    draw_text_scaled(scene, renderer, "MAIN MENU", 800, 180, white, 2.0f);
     
-    // Gombok kirajzolása (a hovered állapot alapján színeznek)
-    Button* buttons[] = {&play_btn, &quit_btn};
-    buttons_draw(buttons, 2, scene->font, scene, renderer);
+    Button* buttons[] = {&play_btn, &quit_btn, &battle_pass_btn};
+    buttons_draw(buttons, 3, scene->font, scene, renderer);
     
-    // Kijelölés jelzése (kis nyíl vagy háromszög a kiválasztott gomb mellett)
     SDL_Color arrow_color = {255, 255, 0, 255};
-    int arrow_y = (scene->selected_map == 0) ? 430 : 530;
-    draw_text(scene, renderer, ">", 820, arrow_y, arrow_color);
+    int arrow_y;
+    switch (scene->selected_map)
+    {
+    case 0: arrow_y = 420; break;
+    case 1: arrow_y = 520; break;
+    case 2: arrow_y = 630; break;
+    }
+    draw_text(scene, renderer, ">", 815, arrow_y, arrow_color);
 }
 
-// ─── render_map_select (eredeti, változatlan) ─────────────────────
+// ─── render_map_select ────────────────────────────────────────────
 void render_map_select(Scene* scene, SDL_Renderer* renderer) {
+    init_map_buttons(scene);
+    
+    map1_btn.hovered = (scene->selected_map == 0);
+    map2_btn.hovered = (scene->selected_map == 1);
+    map3_btn.hovered = (scene->selected_map == 2);
+    back_btn.hovered = (scene->selected_map == 3);
+    
     SDL_Color white = {255, 255, 255, 255};
-    SDL_Color highlight = {0, 255, 255, 255};
-
-    draw_text(scene, renderer, "SELECT A MAP", 860, 50, white);
-
-    const char* maps[] = {"Level 1", "Level 2", "Level 3"};
-    for (int i = 0; i < 3; i++) {
-        SDL_Color c = (scene->selected_map == i) ? highlight : white;
-        draw_text(scene, renderer, maps[i], 900, 200 + (i * 50), c);
+    draw_text_scaled(scene, renderer, "SELECT A MAP", 750, 50, white, 2.0f);
+    
+    Button* buttons[] = {&map1_btn, &map2_btn, &map3_btn, &back_btn};
+    buttons_draw(buttons, 4, scene->font, scene, renderer);
+    
+    SDL_Color arrow_color = {255, 255, 0, 255};
+    int arrow_y, arrow_x;
+    switch (scene->selected_map) {
+        case 0: 
+            arrow_y = 220; 
+            arrow_x = 820; 
+            break;
+        case 1: 
+            arrow_y = 320;  
+            arrow_x = 820; 
+            break;
+        case 2: 
+            arrow_y = 475;  
+            arrow_x = 770; 
+            break;
+        case 3: 
+            arrow_y = 650;  
+            arrow_x = 820; 
+            break;
+        default: 
+            arrow_y = 230;
+            arrow_x = 820;
     }
+    
+    draw_text(scene, renderer, ">", arrow_x, arrow_y, arrow_color);
+    
+   
 }
 
 // ─── handle_menu_input ────────────────────────────────────────────
 void handle_menu_input(Scene* scene, SDL_Event* event, bool* is_running) {
     init_menu_buttons(scene, is_running);
+    init_map_buttons(scene);
     
-    // ─── EGÉR ESEMÉNYEK (gomb kattintás) ─────────────────────────
-    Button* buttons[] = {&play_btn, &quit_btn};
-    buttons_handle_event(buttons, 2, event);
-    
-    // Ha az egérrel hover-eltünk, szinkronizáljuk a selected_map-et
-    if (play_btn.hovered && !quit_btn.hovered) {
-        scene->selected_map = 0;
-    } else if (quit_btn.hovered && !play_btn.hovered) {
-        scene->selected_map = 1;
+    // Egér események
+    if (scene->phase == PHASE_MENU) {
+        Button* buttons[] = {&play_btn, &quit_btn, &battle_pass_btn};
+        buttons_handle_event(buttons, 3, event);
+        
+        if (play_btn.hovered) {
+            scene->selected_map = 0;
+        } else if (quit_btn.hovered ) {
+            scene->selected_map = 1;
+        } else if(battle_pass_btn.hovered){
+            scene->selected_map = 2;
+        }
+    } else if (scene->phase == PHASE_MAP_SELECT) {
+        Button* buttons[] = {&map1_btn, &map2_btn, &map3_btn, &back_btn};
+        buttons_handle_event(buttons, 4, event);
+        
+        if (map1_btn.hovered) scene->selected_map = 0;
+        else if (map2_btn.hovered) scene->selected_map = 1;
+        else if (map3_btn.hovered) scene->selected_map = 2;
+        else if (back_btn.hovered) scene->selected_map = 3;
     }
     
-    // ─── BILLENTYŰZET ESEMÉNYEK (eredeti működés megőrzése) ─────
+    // Billentyűzet események
     if (event->type != SDL_KEYDOWN) return;
 
     switch (event->key.keysym.sym) {
         case SDLK_UP:
             scene->selected_map--;
-            if (scene->selected_map < 0) scene->selected_map = 1; 
+            if (scene->selected_map < 0) {
+                scene->selected_map = (scene->phase == PHASE_MENU) ? 1 : 3;
+            }
             break;
 
         case SDLK_DOWN:
             scene->selected_map++;
-            if (scene->selected_map > 1) scene->selected_map = 0;
+            if (scene->phase == PHASE_MENU) {
+                if (scene->selected_map > 1) scene->selected_map = 0;
+            } else {
+                if (scene->selected_map > 3) scene->selected_map = 0;
+            }
             break;
 
         case SDLK_ESCAPE:
-            scene->phase = PHASE_MENU;
+            if (scene->phase == PHASE_MAP_SELECT) {
+                scene->phase = PHASE_MENU;
+                scene->selected_map = 0;
+            } else {
+                *is_running = false;
+            }
             break;
 
         case SDLK_RETURN:
@@ -211,8 +383,19 @@ void handle_menu_input(Scene* scene, SDL_Event* event, bool* is_running) {
                     *is_running = false;
                 }
             } else if (scene->phase == PHASE_MAP_SELECT) {
-                stop_music();
-                scene->phase = PHASE_GAMEPLAY; 
+                if (scene->selected_map == 0) {
+                    stop_music();
+                    scene->phase = PHASE_GAMEPLAY;
+                } else if (scene->selected_map == 1) {
+                    stop_music();
+                    scene->phase = PHASE_GAMEPLAY;
+                } else if (scene->selected_map == 2) {
+                    stop_music();
+                    scene->phase = PHASE_GAMEPLAY;
+                } else if (scene->selected_map == 3) {
+                    scene->phase = PHASE_MENU;
+                    scene->selected_map = 0;
+                }
             }
             break;
     }

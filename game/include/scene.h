@@ -4,7 +4,6 @@
 #include "camera.h"
 #include "map.h"
 #include <SDL2/SDL_ttf.h>
-#include "menu.h"
 
 typedef enum GamePhase{
 PHASE_MENU,
