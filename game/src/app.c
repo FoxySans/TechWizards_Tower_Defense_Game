@@ -228,6 +228,8 @@ void render_app(App* app)
 
 void destroy_app(App* app)
 {
+    stop_music();
+    
     if (app->gl_context != NULL) {
         SDL_GL_DeleteContext(app->gl_context);
     }

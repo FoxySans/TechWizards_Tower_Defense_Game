@@ -2,6 +2,7 @@
 #include "scene.h"
 #include "button.h"
 #include <GL/gl.h>
+#include <SDL2/SDL_mixer.h>
 
 // ─── Callback függvények ──────────────────────────────────────────
 static void on_play_click(void* data) {
@@ -20,6 +21,10 @@ static Button play_btn;
 static Button quit_btn;
 static bool buttons_initialized = false;
 
+// ---zene
+static Mix_Music* music = NULL;
+static bool music_initialized = false;
+
 static void init_menu_buttons(Scene* scene, bool* is_running) {
     if (buttons_initialized) return;
     
@@ -36,6 +41,55 @@ static void init_menu_buttons(Scene* scene, bool* is_running) {
     quit_btn.user_data = is_running;
     
     buttons_initialized = true;
+}
+//-----zene inicializálása
+static void init_music(void)
+{
+    if (music_initialized) return;
+
+    int flags = Mix_Init(MIX_INIT_MP3);
+        if (!(flags & MIX_INIT_MP3)) {
+         printf("Mix_Init figyelmeztetes: %s\n", Mix_GetError());
+    }
+
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        printf("SDL_mixer hiba: %s\n", Mix_GetError());
+        return;
+    }
+
+    music = Mix_LoadMUS("assets/menu_music.mp3");
+    if (!music) {
+        printf("Betöltési hiba: %s\n", Mix_GetError());
+        Mix_CloseAudio();
+        Mix_Quit();
+        return;
+    }
+
+    if (Mix_PlayMusic(music, -1) == -1) {
+        printf("Lejátszási hiba: %s\n", Mix_GetError());
+        Mix_FreeMusic(music);
+        music = NULL;
+        Mix_CloseAudio();
+        Mix_Quit();
+        return;
+    }
+
+    Mix_VolumeMusic(50);
+    music_initialized = true;
+    printf("Zene sikeresen elindult!\n");
+}
+// zene kikapcs
+void stop_music(void)
+{
+    if (music) {
+        Mix_HaltMusic();
+        Mix_FreeMusic(music);
+        music = NULL;
+    }
+
+    Mix_CloseAudio();
+    Mix_Quit();
+    music_initialized = false;
 }
 
 // ─── draw_text (eredeti, változatlan) ─────────────────────────────
@@ -81,6 +135,7 @@ void draw_text(Scene* scene, SDL_Renderer* renderer, const char* text, int x, in
 // ─── render_menu ──────────────────────────────────────────────────
 void render_menu(Scene* scene, SDL_Renderer* renderer) {
     init_menu_buttons(scene, NULL);
+    init_music();
     
     // ─── BILLENTYŰZET NAVIGÁCIÓ SZINKRONIZÁLÁSA ─────────────────
     // Ha a fel/le gombokkal navigáltak, szinkronizáljuk a gomb hover állapotát
@@ -156,6 +211,7 @@ void handle_menu_input(Scene* scene, SDL_Event* event, bool* is_running) {
                     *is_running = false;
                 }
             } else if (scene->phase == PHASE_MAP_SELECT) {
+                stop_music();
                 scene->phase = PHASE_GAMEPLAY; 
             }
             break;
