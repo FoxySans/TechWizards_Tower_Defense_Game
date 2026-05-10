@@ -79,3 +79,28 @@ void render_enemies(float cam_rot_z)
         }
     }
 }
+
+// enemy_manager.c
+// Inside enemy_manager.c
+Enemy* find_best_enemy(float tower_x, float tower_y, float range) {
+    Enemy* best = NULL;
+    int min_path_dist = 9999;
+
+    for (int i = 0; i < enemy_count; i++) {
+        if (!enemies[i].alive) continue;
+
+        float dx = enemies[i].x - tower_x;
+        float dy = enemies[i].y - tower_y;
+        float dist_sq = dx*dx + dy*dy;
+
+        if (dist_sq <= range * range) {
+            // Target the one closest to the base (lowest pathmap distance)
+            int d = pathmap.dist[enemies[i].col][enemies[i].row];
+            if (d < min_path_dist) {
+                min_path_dist = d;
+                best = &enemies[i];
+            }
+        }
+    }
+    return best;
+}

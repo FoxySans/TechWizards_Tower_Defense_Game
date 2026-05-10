@@ -215,8 +215,12 @@ void update_app(App* app)
             double angle = degree_to_radian(app->camera.rotation.z);
             float target_x = app->camera.position.x + cos(angle) * 2.0f;
             float target_y = app->camera.position.y + sin(angle) * 2.0f;
+            int col = (int)app->camera.position.x; 
+            int row = (int)app->camera.position.y;
             
             map_upgrade_to_tower(&app->scene.map, (int)target_x, (int)target_y, app->selected_tower_type);
+
+            add_active_tower(&app->scene, col, row, app->selected_tower_type);
             
             // Reset after successful build so they have to press again
             app->is_building = false; 

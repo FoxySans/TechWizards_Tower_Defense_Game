@@ -33,6 +33,10 @@ typedef struct Scene {
     float     wave_timer;
     int       enemies_to_spawn;
     int       spawned_count;
+    ActiveTower active_towers[MAX_TOWERS];
+    int active_tower_count;
+    ShotEffect shots[128];
+    int shot_count;
 } Scene;
 
 void init_scene(Scene* scene);
@@ -43,5 +47,8 @@ void render_character(Character* character, GLuint texture_id);
 void draw_floor(float x, float y, float z, float size);
 void draw_cube(float x, float y, float z, float size);
 void start_combat(Scene* scene);
+void update_towers(Scene* scene, double dt);
+void add_active_tower(Scene* scene, int col, int row, int type);
+void render_shots(Scene* scene, double dt);
 
 #endif
