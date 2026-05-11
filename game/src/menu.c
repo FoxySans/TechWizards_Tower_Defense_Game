@@ -1,11 +1,123 @@
 #include "menu.h"
 #include "scene.h"
 #include "button.h"
+
 #include <GL/gl.h>
+
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_image.h>
+
 #include <string.h> 
 
-// ─── Callback függvények (EGYSZER, a fájl elején!) ───────────────
+// ─── DVD-szerű háttér minta struktúra ─────────────────────────────
+typedef struct {
+    float x, y;           
+    float vx, vy;         
+    float scale;          
+    GLuint texture;       
+    int tex_w, tex_h;     
+    float alpha;          
+    bool initialized;     
+} BouncingPattern;
+
+static BouncingPattern bg_pattern = {0};
+
+// ─── Háttér minta inicializálása ──────────────────────────────────
+static void init_bg_pattern(void) {
+    if (bg_pattern.initialized) return;
+    
+    SDL_Surface* surface = IMG_Load("assets/minta.png");
+    if (!surface) {
+        printf("Háttér minta betöltési hiba: %s\n", IMG_GetError());
+        return;
+    }
+    
+    SDL_Surface* optimized = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+    SDL_FreeSurface(surface);
+    if (!optimized) return;
+    
+    glGenTextures(1, &bg_pattern.texture);
+    glBindTexture(GL_TEXTURE_2D, bg_pattern.texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, optimized->w, optimized->h, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, optimized->pixels);
+    
+    bg_pattern.tex_w = optimized->w;
+    bg_pattern.tex_h = optimized->h;
+    bg_pattern.x = 100.0f;
+    bg_pattern.y = 100.0f;
+    bg_pattern.vx = 2000.0f;   // sebesség X
+    bg_pattern.vy = 2000.0f;   // sebesség Y
+    bg_pattern.scale = 0.5f;  
+    bg_pattern.alpha = 0.3f;  
+    bg_pattern.initialized = true;
+    
+    SDL_FreeSurface(optimized);
+    printf("Háttér minta betöltve: %dx%d\n", bg_pattern.tex_w, bg_pattern.tex_h);
+}
+
+// ─── Háttér minta frissítése (pattogás) ──────────────────────────
+static void update_bg_pattern(float dt) {
+    if (!bg_pattern.initialized) return;
+    
+    bg_pattern.x += bg_pattern.vx * dt;
+    bg_pattern.y += bg_pattern.vy * dt;
+    
+    int screen_w = 1920;
+    int screen_h = 1080;
+    float w = bg_pattern.tex_w * bg_pattern.scale;
+    float h = bg_pattern.tex_h * bg_pattern.scale;
+    
+    // Jobb szél visszapattanás
+    if (bg_pattern.x + w > screen_w) {
+        bg_pattern.x = screen_w - w;
+        bg_pattern.vx = -bg_pattern.vx;
+    }
+    // Bal szél
+    if (bg_pattern.x < 0) {
+        bg_pattern.x = 0;
+        bg_pattern.vx = -bg_pattern.vx;
+    }
+    // Alsó szél
+    if (bg_pattern.y + h > screen_h) {
+        bg_pattern.y = screen_h - h;
+        bg_pattern.vy = -bg_pattern.vy;
+    }
+    // Felső szél
+    if (bg_pattern.y < 0) {
+        bg_pattern.y = 0;
+        bg_pattern.vy = -bg_pattern.vy;
+    }
+}
+
+// ─── Háttér minta kirajzolása ───────────────────────────────────
+static void draw_bg_pattern(void) {
+    if (!bg_pattern.initialized) return;
+    
+    float w = bg_pattern.tex_w * bg_pattern.scale;
+    float h = bg_pattern.tex_h * bg_pattern.scale;
+    
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, bg_pattern.texture);
+    
+    glColor4f(1.0f, 1.0f, 1.0f, bg_pattern.alpha);
+    
+    glBegin(GL_QUADS);
+        glTexCoord2f(0, 0); glVertex2f(bg_pattern.x, bg_pattern.y);
+        glTexCoord2f(1, 0); glVertex2f(bg_pattern.x + w, bg_pattern.y);
+        glTexCoord2f(1, 1); glVertex2f(bg_pattern.x + w, bg_pattern.y + h);
+        glTexCoord2f(0, 1); glVertex2f(bg_pattern.x, bg_pattern.y + h);
+    glEnd();
+    
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+}
+
+// ─── Callback függvények ───────────────
 static void on_play_click(void* data) {
     Scene* scene = (Scene*)data;
     scene->phase = PHASE_MAP_SELECT;
@@ -112,6 +224,7 @@ void stop_music(void)
 }
 
 // ─── Gombok inicializálása ───────────────────────────────────────
+// -----menü gombok
 static void init_menu_buttons(Scene* scene, bool* is_running) {
     if (menu_buttons_initialized) return;
     
@@ -135,6 +248,7 @@ static void init_menu_buttons(Scene* scene, bool* is_running) {
     menu_buttons_initialized = true;
 }
 
+// ----- map selection gombok
 static void init_map_buttons(Scene* scene) {
     if (map_buttons_initialized) return;
     
@@ -248,11 +362,58 @@ void draw_text_scaled(Scene* scene, SDL_Renderer* renderer, const char* text, in
     SDL_FreeSurface(converted);
 }
 
-// ─── render_menu ──────────────────────────────────────────────────
+// -----logo ----------------------------------------------------------
+void draw_logo(const char* filename, int x, int y, int w, int h) {
+    SDL_Surface* surface = IMG_Load(filename);
+    if (!surface) {
+        printf("Nem sikerült a logó betöltése: %s\n", IMG_GetError());
+        return;
+    }
+
+    // Átalakítás RGBA formátumra az OpenGL-hez
+    SDL_Surface* optimized = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+    SDL_FreeSurface(surface);
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, optimized->w, optimized->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, optimized->pixels);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_TEXTURE_2D);
+    
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0, 0); glVertex2f(x, y);
+        glTexCoord2f(1, 0); glVertex2f(x + w, y);
+        glTexCoord2f(1, 1); glVertex2f(x + w, y + h);
+        glTexCoord2f(0, 1); glVertex2f(x, y + h);
+    glEnd();
+
+    glDisable(GL_TEXTURE_2D);
+    glDeleteTextures(1, &texture);
+    SDL_FreeSurface(optimized);
+}
+
+// ─── Publikus függvény: háttér minta update (hívni kell a game loopból) ─
+void update_menu_bg(float dt) {
+    init_bg_pattern();
+    update_bg_pattern(dt);
+}
+
+// ---- render_menu ---------------------------------------------------------------
 void render_menu(Scene* scene, SDL_Renderer* renderer) {
     init_menu_buttons(scene, NULL);
     init_music();
-    
+    init_bg_pattern();
+    draw_bg_pattern();
+
+    draw_logo("assets/logo.png", 885, 235, 150, 150);
     play_btn.hovered = (scene->selected_map == 0);
     quit_btn.hovered = (scene->selected_map == 1);
     battle_pass_btn.hovered = (scene->selected_map == 2);
@@ -260,6 +421,9 @@ void render_menu(Scene* scene, SDL_Renderer* renderer) {
     SDL_Color white = {255, 255, 255, 255};
     draw_text_scaled(scene, renderer, "MAIN MENU", 800, 180, white, 2.0f);
     
+    draw_logo("assets/tw.png", 1730, 900, 100, 100);
+    draw_text_scaled(scene, renderer, "@techwizards", 1700, 1030, white, 0.75f);
+
     Button* buttons[] = {&play_btn, &quit_btn, &battle_pass_btn};
     buttons_draw(buttons, 3, scene->font, scene, renderer);
     
@@ -277,6 +441,8 @@ void render_menu(Scene* scene, SDL_Renderer* renderer) {
 // ─── render_map_select ────────────────────────────────────────────
 void render_map_select(Scene* scene, SDL_Renderer* renderer) {
     init_map_buttons(scene);
+    init_bg_pattern();
+    draw_bg_pattern();
     
     map1_btn.hovered = (scene->selected_map == 0);
     map2_btn.hovered = (scene->selected_map == 1);
@@ -288,6 +454,10 @@ void render_map_select(Scene* scene, SDL_Renderer* renderer) {
     
     Button* buttons[] = {&map1_btn, &map2_btn, &map3_btn, &back_btn};
     buttons_draw(buttons, 4, scene->font, scene, renderer);
+
+    draw_text_scaled(scene, renderer, "@techwizards", 1700, 1030, white, 0.75f);
+    draw_logo("assets/logo.png", 885, 800, 150, 150);
+    draw_logo("assets/tw.png", 1730, 900, 100, 100);
     
     SDL_Color arrow_color = {255, 255, 0, 255};
     int arrow_y, arrow_x;
@@ -314,8 +484,7 @@ void render_map_select(Scene* scene, SDL_Renderer* renderer) {
     }
     
     draw_text(scene, renderer, ">", arrow_x, arrow_y, arrow_color);
-    
-   
+       
 }
 
 // ─── handle_menu_input ────────────────────────────────────────────

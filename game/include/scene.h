@@ -8,7 +8,8 @@
 typedef enum GamePhase{
 PHASE_MENU,
 PHASE_MAP_SELECT,
-PHASE_GAMEPLAY
+PHASE_GAMEPLAY,
+PHASE_OPTIONS
 } GamePhase;
 
 typedef struct Scene {

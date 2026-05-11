@@ -179,7 +179,14 @@ void update_app(App* app)
     current_time = (double)SDL_GetTicks() / 1000;
     elapsed_time = current_time - app->uptime;
     app->uptime = current_time;
+    static Uint32 last_time = 0;
+    float dt = (current_time - last_time) / 1000.0f;
+    last_time = current_time;
 
+    if (dt > 0.1f) dt = 0.1f;
+    if (app->scene.phase == PHASE_MENU || app->scene.phase == PHASE_MAP_SELECT) {
+        update_menu_bg(dt);
+    }
    update_camera(&(app->camera), &(app->scene.map), elapsed_time);
     update_scene(&(app->scene));
 }
