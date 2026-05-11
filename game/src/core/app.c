@@ -102,7 +102,6 @@ void set_lightning(){
 void handle_app_events(App* app)
 {
     SDL_Event event;
-    static bool is_mouse_down = false;
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -180,15 +179,8 @@ void handle_app_events(App* app)
                 break;
             }
             break;
-        case SDL_MOUSEBUTTONDOWN:
-            is_mouse_down = true;
-            break;
         case SDL_MOUSEMOTION:
-            //cursor sticking to the center of the screen
             character_rotate(&app->scene.character, event.motion.xrel, event.motion.yrel, 0.4);
-            break;
-        case SDL_MOUSEBUTTONUP:
-            is_mouse_down = false;
             break;
         case SDL_QUIT:
             app->is_running = false;

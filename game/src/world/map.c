@@ -20,7 +20,7 @@ static int level1[MAP_HEIGHT][MAP_WIDTH] = {
     {1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,4},
 };
 
-static int level2[MAP_HEIGHT][MAP_WIDTH] = {
+/*static int level2[MAP_HEIGHT][MAP_WIDTH] = {
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
     {0,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
@@ -37,7 +37,7 @@ static int level2[MAP_HEIGHT][MAP_WIDTH] = {
     {1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
     {1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,4},
 };
-
+*/
 void map_load(Map* map)
 {
     map->width  = MAP_WIDTH;

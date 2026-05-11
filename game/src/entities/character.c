@@ -46,10 +46,11 @@ void character_update(Character* c, Map* map, double dt)
     float angle      = degree_to_radian(c->angle);
     float side_angle = degree_to_radian(c->angle + 90.0f);
 
-    float new_x = c->x + cosf(angle)      * c->speed_forward * sprint * dt
-                       + cosf(side_angle)  * c->speed_side    * sprint * dt;
-    float new_y = c->y + sinf(angle)      * c->speed_forward * sprint * dt
-                       + sinf(side_angle)  * c->speed_side    * sprint * dt;
+    float move_x = cosf(angle) * c->speed_forward + cosf(side_angle) * c->speed_side;
+    float move_y = sinf(angle) * c->speed_forward + sinf(side_angle) * c->speed_side;
+
+    float new_x = c->x + move_x * sprint * dt;
+    float new_y = c->y + move_y * sprint * dt;
 
     // X collision
     int col_x = (int)(new_x + (new_x > c->x ? PLAYER_RADIUS : -PLAYER_RADIUS));
@@ -92,6 +93,11 @@ void character_update(Character* c, Map* map, double dt)
     if (is_moving) {
         c->bob_time  += (float)dt * BOB_SPEED * sprint;
         c->bob_amount = sinf(c->bob_time) * BOB_MAGNITUDE;
+
+        float move_relative_angle = atan2f(c->speed_side, -c->speed_forward);
+
+        float move_deg = move_relative_angle * 180.0f / 3.14159f;
+        c->render_angle = c->angle - move_deg + 90.0f;
     } else {
         // smoothly return to 0
         c->bob_amount *= 0.85f;
@@ -100,34 +106,38 @@ void character_update(Character* c, Map* map, double dt)
 
 void character_render(const Character* c)
 {
-    if (!c->third_person) return;
-    if (!c->model)        return;
-
-    bool is_moving = (c->speed_forward != 0.0f || c->speed_side != 0.0f);
-    float bob = is_moving ? c->bob_amount : 0.0f;
+    if (!c->third_person || !c->model) return;
 
     glPushMatrix();
-        glTranslatef(c->x, c->y, c->z - EYE_HEIGHT + bob);
-        glRotatef(c->angle + 180.0f, 0.0f, 0.0f, 1.0f);
-        glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
-        glScalef(c->model_scale, c->model_scale, c->model_scale);
+        glTranslatef(c->x, c->y, c->z - EYE_HEIGHT + c->bob_amount);
+        
+        // 1. Turning (Yaw) - Keep this as is
+        glRotatef(c->render_angle, 0.0f, 0.0f, 1.0f);
+        
+        // 2. Stand Up - Use 90.0f here. 
+        // If he's face down, use -90.0f. If he's on his back, use 90.0f.
+        glRotatef(180.0f, 1.0f, 0.0f, 0.0f);
+        
+        // 3. Facing Correction
+        // This is where you fix if he is "looking side-ways" when walking
+        glRotatef(180.0f, 0.0f, 1.0f, 0.0f); 
 
+        glScalef(c->model_scale, c->model_scale, c->model_scale);
+        
         glBindTexture(GL_TEXTURE_2D, c->texture_id);
-        draw_model(c->model);  
+        draw_model(c->model);
     glPopMatrix();
 }
 
 void character_set_view(const Character* c, Camera* cam)
 {
     if (!c->third_person) {
-        // FPS — camera at eye position
         cam->position.x = c->x;
         cam->position.y = c->y;
         cam->position.z = c->z + c->bob_amount;
         cam->rotation.z = c->angle;
         cam->rotation.x = c->pitch;
     } else {
-        // third person — camera behind and above
         float angle = degree_to_radian(c->angle);
         cam->position.x = c->x - cosf(angle) * THIRD_PERSON_DIST;
         cam->position.y = c->y - sinf(angle) * THIRD_PERSON_DIST;

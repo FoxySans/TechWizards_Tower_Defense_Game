@@ -15,7 +15,7 @@ typedef struct {
     float x, y, z;
 
     // facing
-    float angle;         // horizontal — used by character.c
+    float angle;         // horizontal
     float pitch;         // vertical
 
     // movement
@@ -23,6 +23,7 @@ typedef struct {
     float speed_side;
     float speed_vertical;
     bool  is_sprinting;
+    float render_angle;
 
     // animation
     float bob_time;
@@ -32,7 +33,7 @@ typedef struct {
     bool  third_person;
 
     // model
-    Model* model;        // pointer — matches c->model = NULL in character.c
+    Model* model;
     float  model_scale;
     GLuint texture_id;
 

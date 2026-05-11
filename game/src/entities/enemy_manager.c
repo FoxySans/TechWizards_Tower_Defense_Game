@@ -5,7 +5,7 @@
 static Enemy enemies[MAX_ENEMIES];
 static int enemy_count = 0;
 static PathMap pathmap;
-static const Map* current_map;
+//static const Map* current_map;
 
 typedef struct {
     EnemyType type;

@@ -7,19 +7,19 @@
 
 void init_scene(Scene* scene)
 {
+    glEnable(GL_TEXTURE_2D);
+    set_lighting();
     map_load(&scene->map);
     character_init(&scene->character, 0.5f, 1.5f, EYE_HEIGHT);
     enemy_manager_init(&scene->map);
 
-    // Allocate memory because character.model is a pointer
     scene->character.model = (Model*)malloc(sizeof(Model));
     
-    // REMOVE & here: model is already a pointer
+    glColor3f(1.0f, 1.0f, 1.0f);
     init_model(scene->character.model);
-    load_model(scene->character.model, "assets/models/scientist.obj");
-    scene->character.texture_id = load_texture("assets/textures/texture.png");
+    load_model(scene->character.model, "assets/models/soldier.obj");
+    scene->character.texture_id = load_texture("assets/textures/soldier_atlas.png");
 
-    // KEEP & here: towers[0] is a struct in scene.h
     init_model(&scene->towers[0]);
     load_model(&scene->towers[0], "assets/models/tower.obj");
     scene->tower_textures[0] = load_texture("assets/textures/alap.jpg");
@@ -27,10 +27,6 @@ void init_scene(Scene* scene)
     init_model(&scene->towers[1]);
     load_model(&scene->towers[1], "assets/models/tower.obj");
     scene->tower_textures[1] = load_texture("assets/textures/alap.jpg");
-
-    spawn_enemy(ENEMY_BASIC, 2); 
-    spawn_enemy(ENEMY_FAST, 1);
-    spawn_enemy(ENEMY_TANK, 3);
 }
 
 void update_scene(Scene* scene, double dt)
@@ -46,6 +42,20 @@ void render_scene(const Scene* scene, float cam_rot_z)
     glColor3f(1.0f, 1.0f, 1.0f);
     character_render(&scene->character);
 }
+
+void set_lighting()
+{
+    float ambient_light[] = { 0.4f, 0.4f, 0.4f, 1.0f };
+    float diffuse_light[] = { 1.0f, 1.0f, 1.0, 1.0f };
+    float specular_light[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    float position[] = { 0.0f, 0.0f, 10.0f, 1.0f };
+
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, specular_light);
+    glLightfv(GL_LIGHT0, GL_POSITION, position);
+}
+
 
 void render_map(const Map* map, const Scene* scene)
 {

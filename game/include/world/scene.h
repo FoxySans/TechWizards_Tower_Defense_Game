@@ -42,6 +42,7 @@ void render_map(const Map* map, const Scene* scene);
 void render_character(Character* character, GLuint texture_id);
 void draw_floor(float x, float y, float z, float size);
 void draw_cube(float x, float y, float z, float size);
+void set_lighting();
 void start_combat(Scene* scene);
 
 #endif
