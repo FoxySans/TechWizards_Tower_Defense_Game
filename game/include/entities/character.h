@@ -13,6 +13,8 @@
 typedef struct {
     // position
     float x, y, z;
+    float velocity_z;
+    bool is_grounded;
 
     // facing
     float angle;         // horizontal

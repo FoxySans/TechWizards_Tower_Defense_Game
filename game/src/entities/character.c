@@ -42,6 +42,13 @@ void character_init(Character* c, float x, float y, float z)
 
 void character_update(Character* c, Map* map, double dt)
 {
+    const float GRAVITY=-25.0f;
+    c->velocity_z+=GRAVITY * (float)dt;
+
+    c->z += c->velocity_z * (float)dt;
+
+    float floor_z = EYE_HEIGHT;
+
     float sprint = c->is_sprinting ? SPRINT_MULT : 1.0f;
     float angle      = degree_to_radian(c->angle);
     float side_angle = degree_to_radian(c->angle + 90.0f);
@@ -80,13 +87,15 @@ void character_update(Character* c, Map* map, double dt)
     int row = (int)c->y;
     Tile* below = map_get_tile(map, col, row);
     if (below && below->type == TILE_WALL) {
-        if (c->z < WALL_HEIGHT + EYE_HEIGHT)
-            c->z = WALL_HEIGHT + EYE_HEIGHT;
+            floor_z = WALL_HEIGHT + EYE_HEIGHT;
+        }
+    if (c->z <= floor_z) {
+        c->z = floor_z;       
+        c->velocity_z = 0;    
+        c->is_grounded = true; 
     } else {
-        if (c->z < EYE_HEIGHT)
-            c->z = EYE_HEIGHT;
+        c->is_grounded = false; 
     }
-    if (c->z > 10.0f) c->z = 10.0f;
 
     // walking bob
     bool is_moving = (c->speed_forward != 0.0f || c->speed_side != 0.0f);

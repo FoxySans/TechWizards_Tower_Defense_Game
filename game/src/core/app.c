@@ -141,6 +141,10 @@ void handle_app_events(App* app)
             case SDL_SCANCODE_F1:
                 app->scene.show_tooltip=!app->scene.show_tooltip;
                 break;
+            case SDL_SCANCODE_SPACE:
+                if (app->scene.character.is_grounded) {
+                    app->scene.character.velocity_z = 10.0f; }
+                break;
             case SDL_SCANCODE_E:
                     app->is_building = true;
                     if (app->build_timer == app->build_threshold)
@@ -150,9 +154,6 @@ void handle_app_events(App* app)
                 break;
             case SDL_SCANCODE_LSHIFT:
                 character_set_sprint(&app->scene.character, true);
-                break;
-            case SDL_SCANCODE_SPACE:
-                character_set_vertical(&app->scene.character, 1);
                 break;
             case SDL_SCANCODE_LCTRL:
                 character_set_vertical(&app->scene.character, -1);
@@ -167,7 +168,6 @@ void handle_app_events(App* app)
             break;
         case SDL_KEYUP:
             switch (event.key.keysym.scancode) {
-            case SDL_SCANCODE_SPACE:
             case SDL_SCANCODE_LCTRL:
                 character_set_vertical(&app->scene.character, 0);  // was set_camera_vertical_speed
                 break;
