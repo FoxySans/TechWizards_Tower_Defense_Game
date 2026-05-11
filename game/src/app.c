@@ -218,11 +218,12 @@ void render_app(App* app)
         glDisable(GL_DEPTH_TEST);
         glColor3f(1.0f, 1.0f, 1.0f);
         // Call menu rendering here
-        if (app->scene.phase == PHASE_MENU) {
-            render_menu(&(app->scene), app->renderer);
-        } else if (app->scene.phase == PHASE_MAP_SELECT) {
-            render_map_select(&(app->scene), app->renderer);
-        }
+       if (app->scene.phase == PHASE_MENU) {
+    render_menu(&app->scene, app->renderer);
+} else if (app->scene.phase == PHASE_MAP_SELECT) {
+    render_map_select(&app->scene, app->renderer);
+} else if (app->scene.phase == PHASE_OPTIONS) {
+    render_options(&app->scene, app->renderer);}
         glEnable(GL_DEPTH_TEST);
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
