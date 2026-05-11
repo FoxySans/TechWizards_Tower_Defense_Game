@@ -35,6 +35,7 @@ typedef struct {
     int remaining;
     bool alive;
     bool reached_base;
+    bool active;
 } Enemy;
 
 /* pathfinding */

@@ -2,7 +2,23 @@
 #include <stdio.h>
 #include <math.h>   
 #include <SDL2/SDL_image.h>
+#include "entities/enemy_manager.h"
 
+
+void print_help_to_terminal() {
+    printf("\n--- IRANYITAS ---\n");
+    printf("[W,A,S,D]  - Mozgas\n");
+    printf("[EGER BAL] - Loves (Single Target)\n");
+    printf("[B]        - BOMBA (Mindenkit sebez)\n");
+    printf("[P]        - Szunet ki/be\n");
+    printf("[H]        - Segitseg kiiratasa\n");
+    printf("\n--- SPAWN MENU ---\n");
+    printf("[4]        - Alap ellenfel\n");
+    printf("[5]        - Gyors ellenfel\n");
+    printf("[6]        - Tank ellenfel\n");
+    
+    printf("-----------------\n\n");
+}
 void init_app(App* app, int width, int height)
 {
     int error_code;
@@ -36,12 +52,14 @@ void init_app(App* app, int width, int height)
 
     init_opengl();
     reshape(width, height);
+    print_help_to_terminal();
     SDL_SetRelativeMouseMode(SDL_TRUE);
     init_camera(&(app->camera));
     init_scene(&(app->scene));
 
     app->uptime = (double)SDL_GetTicks() / 1000;
     app->is_running = true;
+    
 }
 
 void init_opengl()
@@ -102,12 +120,36 @@ void set_lightning(){
 void handle_app_events(App* app)
 {
     SDL_Event event;
-    static bool is_mouse_down = false;
+    // Visszatesszük a változót, hogy ne legyen hiba
+    static bool is_mouse_down = false; 
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
+        case SDL_QUIT:
+            app->is_running = false;
+            break;
+
         case SDL_KEYDOWN:
+            
             switch (event.key.keysym.scancode) {
+            case SDL_SCANCODE_B:
+                damage_any_enemy(50);
+                break;
+            case SDL_SCANCODE_H:
+                print_help_to_terminal();
+                break;
+            case SDL_SCANCODE_P:
+                toggle_enemies_pause();
+                break;
+            case SDL_SCANCODE_4:
+                spawn_enemy(ENEMY_BASIC, 1);
+                break;
+            case SDL_SCANCODE_5:
+                spawn_enemy(ENEMY_FAST, 1);
+                break;
+            case SDL_SCANCODE_6:
+                spawn_enemy(ENEMY_TANK, 1);
+            break;
             case SDL_SCANCODE_ESCAPE:
                 app->is_running = false;
                 break;
@@ -125,18 +167,12 @@ void handle_app_events(App* app)
                 break;
             case SDL_SCANCODE_1:
                 app->selected_tower_type = TILE_TOWER_RED;
-                printf("Selected: Red Tower\n");
                 break;
             case SDL_SCANCODE_2:
                 app->selected_tower_type = TILE_TOWER_BLUE;
-                printf("Selected: Blue Tower\n");
                 break;
             case SDL_SCANCODE_E:
-                    app->is_building = true;
-                    if (app->build_timer == app->build_threshold)
-                    {
-                        app->is_building = false;
-                    }
+                app->is_building = true;
                 break;
             case SDL_SCANCODE_LSHIFT:
                 character_set_sprint(&app->scene.character, true);
@@ -148,52 +184,56 @@ void handle_app_events(App* app)
                 character_set_vertical(&app->scene.character, -1);
                 break;
             case SDL_SCANCODE_V:
-            character_toggle_view(&app->scene.character);
-            break;
-
+                character_toggle_view(&app->scene.character);
+                break;
             default:
                 break;
             }
-            break;
+            break; // SDL_KEYDOWN vége
+
         case SDL_KEYUP:
             switch (event.key.keysym.scancode) {
-            case SDL_SCANCODE_SPACE:
-            case SDL_SCANCODE_LCTRL:
-                character_set_vertical(&app->scene.character, 0);  // was set_camera_vertical_speed
-                break;
             case SDL_SCANCODE_W:
             case SDL_SCANCODE_S:
-                character_set_speed(&app->scene.character, 0, app->scene.character.speed_side);  // was set_camera_speed
+                character_set_speed(&app->scene.character, 0, app->scene.character.speed_side);
                 break;
             case SDL_SCANCODE_A:
             case SDL_SCANCODE_D:
-                character_set_speed(&app->scene.character, app->scene.character.speed_forward, 0);  // was set_camera_side_speed
+                character_set_speed(&app->scene.character, app->scene.character.speed_forward, 0);
+                break;
+            case SDL_SCANCODE_SPACE:
+            case SDL_SCANCODE_LCTRL:
+                character_set_vertical(&app->scene.character, 0);
                 break;
             case SDL_SCANCODE_LSHIFT:
-                character_set_sprint(&app->scene.character, false);  // was set_camera_sprint
+                character_set_sprint(&app->scene.character, false);
                 break;
             case SDL_SCANCODE_E:
-                app->is_building=false;
-                app->build_timer=0.0f;
+                app->is_building = false;
+                app->build_timer = 0.0f;
                 break;
             default:
                 break;
             }
             break;
+
         case SDL_MOUSEBUTTONDOWN:
-            is_mouse_down = true;
+            is_mouse_down = true; // Most már létezik a változó
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                // Sebzés logika
+                double angle = degree_to_radian(app->camera.rotation.z);
+                float tx = app->camera.position.x + cos(angle) * 2.0f;
+                float ty = app->camera.position.y + sin(angle) * 2.0f;
+                enemy_manager_damage_at(tx, ty);
+            }
             break;
-        case SDL_MOUSEMOTION:
-            //cursor sticking to the center of the screen
-            character_rotate(&app->scene.character, event.motion.xrel, event.motion.yrel, 0.4);
-            break;
+
         case SDL_MOUSEBUTTONUP:
             is_mouse_down = false;
             break;
-        case SDL_QUIT:
-            app->is_running = false;
-            break;
-        default:
+
+        case SDL_MOUSEMOTION:
+            character_rotate(&app->scene.character, event.motion.xrel, event.motion.yrel, 0.4);
             break;
         }
     }

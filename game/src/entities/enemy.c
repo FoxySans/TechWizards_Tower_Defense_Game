@@ -1,5 +1,6 @@
 
 #include "entities/enemy.h"
+#include "entities/enemy_manager.h"
 #include <GL/gl.h>
 #include <math.h>
 #include <limits.h>
@@ -8,6 +9,9 @@
 #define ENEMY_Z 1.0f
 #define EPSILON 0.05f
 #define INF 999999
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 static void choose_next_tile(Enemy* e, const PathMap* pm);
 
@@ -96,9 +100,10 @@ void enemy_init(Enemy* e, const Map* map, const PathMap* pm, EnemyType type)
 
     e->alive = true;
     e->reached_base = false;
-
+    
     
     choose_next_tile(e, pm);
+    
 }
 
 static void choose_next_tile(Enemy* e, const PathMap* pm)
@@ -129,6 +134,11 @@ static void choose_next_tile(Enemy* e, const PathMap* pm)
 
 void enemy_update(Enemy* e, const Map* map, const PathMap* pm, double dt)
 {
+
+
+if (are_enemies_paused())
+        return;
+
 
 if (!e->alive || e->reached_base)
     return;
@@ -173,67 +183,96 @@ void enemy_damage(Enemy* e, int dmg)
         e->alive = false;
     }
 }
+static void draw_sphere_wireframe(float radius, int slices, int stacks) {
+    // Vízszintes körök
+    for (int i = 0; i <= stacks; i++) {
+        float phi = M_PI * (float)i / (float)stacks;
+        float r = radius * sinf(phi);
+        float z = radius * cosf(phi);
 
-void enemy_render(const Enemy* e, float cam_rot_z)
-{
-    if (!e->alive)
-        return;
-
-    glPushMatrix();
-    glTranslatef(e->x, e->y, 0.0f);
-
-    glColor3f(0.9f, 0.1f, 0.1f);
-    float size = 0.2f;
-    if (e->type == ENEMY_TANK) {
-        glColor3f(0.0f, 0.9f, 0.0f);
-        size = 0.28f;
-    } else if (e->type == ENEMY_FAST) {
-        glColor3f(0.0f, 0.0f, 0.9f);
-        size = 0.16f;
+        glBegin(GL_LINE_LOOP);
+        for (int j = 0; j <= slices; j++) {
+            float theta = 2.0f * M_PI * (float)j / (float)slices;
+            glVertex3f(cosf(theta) * r, sinf(theta) * r, z);
+        }
+        glEnd();
     }
+    
+    // Függőleges körök
+    for (int i = 0; i < slices; i++) {
+        float theta = 2.0f * M_PI * (float)i / (float)slices;
+        glBegin(GL_LINE_STRIP);
+        for (int j = 0; j <= stacks; j++) {
+            float phi = M_PI * (float)j / (float)stacks;
+            glVertex3f(radius * sinf(phi) * cosf(theta), radius * sinf(phi) * sinf(theta), radius * cosf(phi));
+        }
+        glEnd();
+    }
+}
+void enemy_render(const Enemy* e, float cam_rot_z) {
+    if (!e->alive) return;
 
+    // Méretek beállítása típus szerint
+    float size = 0.2f;
+    if (e->type == ENEMY_FAST) size = 0.15f;
+    if (e->type == ENEMY_TANK) size = 0.45f;
+
+    // 1. GÖMB RAJZOLÁSA
+    glPushMatrix();
+    glTranslatef(e->x, e->y, size + 0.1f);
+
+    switch (e->type) {
+        case ENEMY_BASIC:
+            glColor3f(1.0f, 0.2f, 0.2f); // Piros
+            draw_sphere_wireframe(size, 12, 10);
+            break;
+        case ENEMY_FAST:
+            glColor3f(0.2f, 0.6f, 1.0f); // Kék
+            draw_sphere_wireframe(size, 10, 8);
+            break;
+        case ENEMY_TANK:
+            glColor3f(0.2f, 1.0f, 0.2f); // Zöld
+            draw_sphere_wireframe(size, 16, 14);
+            break;
+    }
+    glPopMatrix();
+
+    // 2. HP SÁV RAJZOLÁSA
+    glPushMatrix();
+    glTranslatef(e->x, e->y, (size * 2.0f) + 0.4f);
+    
+    // Billboard technika (szembefordítás)
+    glRotatef(cam_rot_z - 90.0f, 0, 0, 1);
+    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+
+    float bar_w = size * 2.5f; 
+    float bar_h = 0.06f;
+    
+    // FONTOS: float kényszerítés, hogy mozogjon a csík!
+    float health_perc = (float)e->hp / (float)ENEMY_STATS[e->type].hp;
+    if (health_perc < 0.0f) health_perc = 0.0f;
+
+    // Sötét háttér
+    glColor3f(0.2f, 0.0f, 0.0f);
     glBegin(GL_QUADS);
-        glVertex3f(-size, 0, 0);
-        glVertex3f( size, 0, 0);
-        glVertex3f( size, 0, 0.6f);
-        glVertex3f(-size, 0, 0.6f);
+        glVertex2f(-bar_w/2, 0);
+        glVertex2f( bar_w/2, 0);
+        glVertex2f( bar_w/2, bar_h);
+        glVertex2f(-bar_w/2, bar_h);
     glEnd();
 
-    // 2. HP BAR RENDERING (Billboarded to face camera)
-    glPushMatrix();
-        // Move to head height (above the enemy body)
-        glTranslatef(0, 0, 0.75f); 
-        
-        // Rotate to face the camera based on Z-rotation
-        glRotatef(cam_rot_z - 90.0f, 0, 0, 1);
-        glRotatef(90.0f, 1.0f, 0.0f, 0.0f); 
+    // Zöld élet-csík
+    glTranslatef(0, 0, 0.001f);
+    glColor3f(0.0f, 1.0f, 0.3f);
+    glBegin(GL_QUADS);
+        glVertex2f(-bar_w/2, 0);
+        glVertex2f(-bar_w/2 + (bar_w * health_perc), 0);
+        glVertex2f(-bar_w/2 + (bar_w * health_perc), bar_h);
+        glVertex2f(-bar_w/2, bar_h);
+    glEnd();
 
-        float bar_w = size * 2.0f;
-        float bar_h = 0.06f;
-        float health_perc = (float)e->hp / (float)ENEMY_STATS[e->type].hp;
-
-        // DRAW RED BACKGROUND (The "container")
-        glColor3f(0.3f, 0.0f, 0.0f); // Dark red
-        glBegin(GL_QUADS);
-            glVertex2f(-bar_w/2, 0);
-            glVertex2f( bar_w/2, 0);
-            glVertex2f( bar_w/2, bar_h);
-            glVertex2f(-bar_w/2, bar_h);
-        glEnd();
-
-        // DRAW GREEN BAR (The actual health)
-        // We add a tiny 0.001f offset on the Z-axis here to stop the flickering
-        glTranslatef(0.0f, 0.0f, 0.001f); 
-        
-        glColor3f(0.0f, 1.0f, 0.0f); // Bright green
-        glBegin(GL_QUADS);
-            glVertex2f(-bar_w/2, 0);
-            glVertex2f(-bar_w/2 + (bar_w * health_perc), 0);
-            glVertex2f(-bar_w/2 + (bar_w * health_perc), bar_h);
-            glVertex2f(-bar_w/2, bar_h);
-        glEnd();
-    glPopMatrix(); // End HP Bar transformations
-
-    glPopMatrix(); // End Enemy transformations
+    glPopMatrix();
 }
+
+
 

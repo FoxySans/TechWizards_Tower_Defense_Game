@@ -35,6 +35,10 @@ void init_scene(Scene* scene)
 
 void update_scene(Scene* scene, double dt)
 {
+    
+    if (are_enemies_paused())
+            return;
+
     update_enemies(&scene->map, dt);
 }
 
