@@ -8,7 +8,7 @@ void print_menu_header() {
     printf("\n");
     printf("  ###########################################\n");
     printf("  ##                                       ##\n");
-    printf("  ##       T O W E R   D E F E N S E       ##\n");
+    printf("  ##         S P E L L   P U N K           ##\n");
     printf("  ##                                       ##\n");
     printf("  ###########################################\n");
     printf("\n");
@@ -21,10 +21,11 @@ int main(int argc, char* argv[]) {
     (void)argc; (void)argv;
 	
 	   init_app(&app, 1920, 1080); 
-#ifdef _WIN32
+
+    #ifdef _WIN32
     #include <windows.h>
     SetForegroundWindow(GetConsoleWindow());
-#endif
+    #endif
     
     while (!loaded) {
         int choice;
@@ -39,8 +40,13 @@ int main(int argc, char* argv[]) {
 		printf("  [3]  CUSTOM MAP - Sajat palya betoltese\n");
         printf("       > 6 Alap + 1 Tank ellenseg\n\n");
         
-        printf("  [0]  Kilepes a jatekbol\n");
-        printf("\n  Valasztasod: ");
+        printf("  [0]  Kilepes a jatekbol\n\n");
+
+        printf("Mozgas: w a s d\n");
+        printf("Tower lerakas/eladas: e/q hosszan\n");
+        printf("Tower tipus kivalasztasa: 1, 2\n\n");
+
+        printf("\n Map valasztasod: ");
         
         if (scanf("%d", &choice) != 1) {
             while (getchar() != '\n'); 
