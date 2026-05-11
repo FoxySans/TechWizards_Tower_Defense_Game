@@ -16,13 +16,13 @@ void init_scene(Scene* scene)
     
     // REMOVE & here: model is already a pointer
     init_model(scene->character.model);
-    load_model(scene->character.model, "assets/models/scientist.obj");
-    scene->character.texture_id = load_texture("assets/textures/texture.png");
+    load_model(scene->character.model, "assets/models/wizard.obj");
+    scene->character.texture_id = load_texture("assets/textures/wizardarc.png");
 
     // KEEP & here: towers[0] is a struct in scene.h
     init_model(&scene->towers[0]);
-    load_model(&scene->towers[0], "assets/models/tower.obj");
-    scene->tower_textures[0] = load_texture("assets/textures/alap.jpg");
+    load_model(&scene->towers[0], "assets/models/wizardtower2.obj");
+    scene->tower_textures[0] = load_texture("assets/textures/towercolor.jpg");
 
     init_model(&scene->towers[1]);
     load_model(&scene->towers[1], "assets/models/tower.obj");
