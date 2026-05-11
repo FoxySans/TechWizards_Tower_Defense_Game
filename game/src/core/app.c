@@ -138,6 +138,9 @@ void handle_app_events(App* app)
                 app->scene.brightness+= 0.05f;
                 if (app->scene.brightness < 0.0f) app->scene.brightness = 0.0f;
                 break;
+            case SDL_SCANCODE_F1:
+                app->scene.show_tooltip=!app->scene.show_tooltip;
+                break;
             case SDL_SCANCODE_E:
                     app->is_building = true;
                     if (app->build_timer == app->build_threshold)

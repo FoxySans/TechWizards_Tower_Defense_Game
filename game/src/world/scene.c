@@ -11,7 +11,17 @@ void init_scene(Scene* scene)
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);  
     glEnable(GL_COLOR_MATERIAL);
-    scene->brightness=1.0f;
+    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+    scene->brightness=1.5f;
+    scene->show_tooltip=false;
+
+    if (TTF_Init() == -1) {
+    printf("TTF hiba: %s\n", TTF_GetError());
+    }
+    scene->font = TTF_OpenFont("assets/fonts/font.ttf", 24); 
+    if (!scene->font) {
+        printf("Nem sikerult betolteni a betutipust!\n");
+    }
 
     map_load(&scene->map);
     character_init(&scene->character, 0.5f, 1.5f, EYE_HEIGHT);
@@ -40,23 +50,27 @@ void update_scene(Scene* scene, double dt)
 
 void render_scene(const Scene* scene, float cam_rot_z)
 {
-    set_lighting(scene->brightness);
+    set_lighting(scene, scene->brightness);
     render_map(&scene->map, scene);
     glColor3f(1.0f, 1.0f, 1.0f);
     character_render(&scene->character);
-    
+
+    if (scene->show_tooltip)
+    {
+        render_user_manual(scene,800,700);
+    }
 }
 
-void set_lighting(float level)
+void set_lighting(const Scene* scene, float level)
 {
-
     if (level < 0.0f) level = 0.0f;
-    if (level > 1.0f) level = 1.0f;
+    if (level > 1.5f) level = 1.5f;
 
-    float ambient_light[] = { 0.4f * level, 0.4f * level, 0.4f * level, 1.0f };
+    float ambient_light[] = { 0.6f * level, 0.6f * level, 0.6f * level, 1.0f };
     float diffuse_light[] = { 1.0f * level, 1.0f * level, 1.0f * level, 1.0f };
     float specular_light[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-    float position[] = { 0.0f, 0.0f, 10.0f, 1.0f };
+    float position[] = { scene->character.x, scene->character.y, 10.0f, 1.0f };
+    glLightfv(GL_LIGHT0, GL_POSITION, position);
 
     glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light);
@@ -115,6 +129,7 @@ void render_map(const Map* map, const Scene* scene)
 void draw_floor(float x, float y, float z, float size)
 {
     glBegin(GL_QUADS);
+        glNormal3f(0.0f, 0.0f, 1.0f);
         glVertex3f(x,        y,        z);
         glVertex3f(x + size, y,        z);
         glVertex3f(x + size, y + size, z);
@@ -130,6 +145,7 @@ void draw_cube(float x, float y, float z, float size)
     // floor
     glColor3f(0.4f, 0.4f, 0.4f);
     glBegin(GL_QUADS);
+        glNormal3f(0.0f, 0.0f, 1.0f);
         glVertex3f(x,  y,  z);
         glVertex3f(x2, y,  z);
         glVertex3f(x2, y2, z);
@@ -139,6 +155,7 @@ void draw_cube(float x, float y, float z, float size)
     // ceiling
     glColor3f(0.5f, 0.5f, 0.5f);
     glBegin(GL_QUADS);
+        glNormal3f(0.0f, 0.0f, 1.0f);   
         glVertex3f(x,  y,  z2);
         glVertex3f(x2, y,  z2);
         glVertex3f(x2, y2, z2);
@@ -148,6 +165,7 @@ void draw_cube(float x, float y, float z, float size)
     // front (y)
     glColor3f(0.35f, 0.35f, 0.35f);
     glBegin(GL_QUADS);
+        glNormal3f(0.0f, 0.0f, 1.0f);
         glVertex3f(x,  y, z);
         glVertex3f(x2, y, z);
         glVertex3f(x2, y, z2);
@@ -156,6 +174,7 @@ void draw_cube(float x, float y, float z, float size)
 
     // back (y2)
     glBegin(GL_QUADS);
+        glNormal3f(0.0f, 0.0f, 1.0f);
         glVertex3f(x,  y2, z);
         glVertex3f(x2, y2, z);
         glVertex3f(x2, y2, z2);
@@ -165,6 +184,7 @@ void draw_cube(float x, float y, float z, float size)
     // left (x)
     glColor3f(0.3f, 0.3f, 0.3f);
     glBegin(GL_QUADS);
+        glNormal3f(0.0f, 0.0f, 1.0f);
         glVertex3f(x, y,  z);
         glVertex3f(x, y2, z);
         glVertex3f(x, y2, z2);
@@ -173,6 +193,7 @@ void draw_cube(float x, float y, float z, float size)
 
     // right (x2)
     glBegin(GL_QUADS);
+        glNormal3f(0.0f, 0.0f, 1.0f);
         glVertex3f(x2, y,  z);
         glVertex3f(x2, y2, z);
         glVertex3f(x2, y2, z2);
@@ -180,3 +201,85 @@ void draw_cube(float x, float y, float z, float size)
     glEnd();
 }
 
+void draw_text(const Scene* scene, SDL_Renderer* renderer, const char* text, int x, int y, SDL_Color color)
+{
+    (void)renderer;
+    
+    if (!scene->font) return;
+
+    SDL_Surface* surf = TTF_RenderText_Blended(scene->font, text, color);
+    if (!surf) return;
+
+    SDL_Surface* converted = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGBA32, 0);
+    SDL_FreeSurface(surf);
+    if (!converted) return;
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, converted->w, converted->h, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, converted->pixels);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_TEXTURE_2D);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0, 0); glVertex2f(x, y);
+        glTexCoord2f(1, 0); glVertex2f(x + converted->w, y);
+        glTexCoord2f(1, 1); glVertex2f(x + converted->w, y + converted->h);
+        glTexCoord2f(0, 1); glVertex2f(x, y + converted->h);
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+
+    glDeleteTextures(1, &texture);
+    SDL_FreeSurface(converted);
+}
+
+void render_user_manual(const Scene* scene, int width, int height) {
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    
+    // 2D nézet beállítása
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, width, height, 0, -1, 1);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+
+    // Félátlátszó háttér
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(0.0f, 0.0f, 0.0f, 0.8f);
+    glBegin(GL_QUADS);
+        glVertex2f(10, 10);
+        glVertex2f(350, 10);
+        glVertex2f(350, 280);
+        glVertex2f(10, 280);
+    glEnd();
+
+    // Szövegek kiírása
+    SDL_Color white = {255, 255, 255, 255};
+    draw_text(scene, NULL, "--- IRANYITAS ---", 25, 30, white);
+    draw_text(scene, NULL, "W/A/S/D - Mozgas", 25, 70, white);
+    draw_text(scene, NULL, "SPACE   - Ugras", 25, 100, white);
+    draw_text(scene, NULL, "8 / 9   - Fenyero", 25, 130, white);
+    draw_text(scene, NULL, "F1      - Tooltip", 25, 160, white);
+    draw_text(scene, NULL, "EGER    - Nezegetes", 25, 190, white);
+    
+    // Visszaállás 3D-be
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glPopAttrib();
+}
