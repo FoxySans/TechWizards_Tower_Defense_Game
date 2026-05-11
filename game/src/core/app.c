@@ -12,11 +12,6 @@ void print_help_to_terminal() {
     printf("[B]        - BOMBA (Mindenkit sebez)\n");
     printf("[P]        - Szunet ki/be\n");
     printf("[H]        - Segitseg kiiratasa\n");
-    printf("\n--- SPAWN MENU ---\n");
-    printf("[4]        - Alap ellenfel\n");
-    printf("[5]        - Gyors ellenfel\n");
-    printf("[6]        - Tank ellenfel\n");
-    
     printf("-----------------\n\n");
 }
 void init_app(App* app, int width, int height)
@@ -141,15 +136,6 @@ void handle_app_events(App* app)
             case SDL_SCANCODE_P:
                 toggle_enemies_pause();
                 break;
-            case SDL_SCANCODE_4:
-                spawn_enemy(ENEMY_BASIC, 1);
-                break;
-            case SDL_SCANCODE_5:
-                spawn_enemy(ENEMY_FAST, 1);
-                break;
-            case SDL_SCANCODE_6:
-                spawn_enemy(ENEMY_TANK, 1);
-            break;
             case SDL_SCANCODE_ESCAPE:
                 app->is_running = false;
                 break;
