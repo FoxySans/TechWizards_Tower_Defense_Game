@@ -8,7 +8,11 @@
 void init_scene(Scene* scene)
 {
     glEnable(GL_TEXTURE_2D);
-    set_lighting();
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);  
+    glEnable(GL_COLOR_MATERIAL);
+    scene->brightness=1.0f;
+
     map_load(&scene->map);
     character_init(&scene->character, 0.5f, 1.5f, EYE_HEIGHT);
     enemy_manager_init(&scene->map);
@@ -36,17 +40,21 @@ void update_scene(Scene* scene, double dt)
 
 void render_scene(const Scene* scene, float cam_rot_z)
 {
+    set_lighting(scene->brightness);
     render_map(&scene->map, scene);
-    render_enemies(cam_rot_z);
-
     glColor3f(1.0f, 1.0f, 1.0f);
     character_render(&scene->character);
+    
 }
 
-void set_lighting()
+void set_lighting(float level)
 {
-    float ambient_light[] = { 0.4f, 0.4f, 0.4f, 1.0f };
-    float diffuse_light[] = { 1.0f, 1.0f, 1.0, 1.0f };
+
+    if (level < 0.0f) level = 0.0f;
+    if (level > 1.0f) level = 1.0f;
+
+    float ambient_light[] = { 0.4f * level, 0.4f * level, 0.4f * level, 1.0f };
+    float diffuse_light[] = { 1.0f * level, 1.0f * level, 1.0f * level, 1.0f };
     float specular_light[] = { 0.0f, 0.0f, 0.0f, 1.0f };
     float position[] = { 0.0f, 0.0f, 10.0f, 1.0f };
 

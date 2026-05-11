@@ -130,6 +130,14 @@ void handle_app_events(App* app)
                 app->selected_tower_type = TILE_TOWER_BLUE;
                 printf("Selected: Blue Tower\n");
                 break;
+            case SDL_SCANCODE_8:
+                app->scene.brightness-= 0.05f;
+                if (app->scene.brightness < 0.0f) app->scene.brightness = 0.0f;
+                break;
+            case SDL_SCANCODE_9:
+                app->scene.brightness+= 0.05f;
+                if (app->scene.brightness < 0.0f) app->scene.brightness = 0.0f;
+                break;
             case SDL_SCANCODE_E:
                     app->is_building = true;
                     if (app->build_timer == app->build_threshold)
