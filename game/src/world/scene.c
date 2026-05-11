@@ -10,6 +10,7 @@ void init_scene(Scene* scene)
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);  
+    glEnable(GL_LIGHT1);
     glEnable(GL_COLOR_MATERIAL);
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     scene->brightness=1.5f;
@@ -48,9 +49,9 @@ void update_scene(Scene* scene, double dt)
     update_enemies(&scene->map, dt);
 }
 
-void render_scene(const Scene* scene, float cam_rot_z)
+void render_scene(const Scene* scene)
 {
-    set_lighting(scene, scene->brightness);
+    set_lighting(scene,scene->brightness);
     render_map(&scene->map, scene);
     glColor3f(1.0f, 1.0f, 1.0f);
     character_render(&scene->character);
@@ -61,21 +62,35 @@ void render_scene(const Scene* scene, float cam_rot_z)
     }
 }
 
-void set_lighting(const Scene* scene, float level)
-{
-    if (level < 0.0f) level = 0.0f;
-    if (level > 1.5f) level = 1.5f;
+void set_lighting(const Scene* scene,float level) {
+    glEnable(GL_LIGHTING);
 
-    float ambient_light[] = { 0.6f * level, 0.6f * level, 0.6f * level, 1.0f };
-    float diffuse_light[] = { 1.0f * level, 1.0f * level, 1.0f * level, 1.0f };
-    float specular_light[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-    float position[] = { scene->character.x, scene->character.y, 10.0f, 1.0f };
-    glLightfv(GL_LIGHT0, GL_POSITION, position);
+    // --- LIGHT 0
+    float ambient0[] = { 0.2f * level, 0.2f * level, 0.2f * level, 1.0f };
+    float diffuse0[] = { 0.8f * level, 0.8f * level, 0.8f * level, 1.0f };
+    float pos0[] = { 0.0f, 0.0f, 10.0f, 1.0f };
 
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, specular_light);
-    glLightfv(GL_LIGHT0, GL_POSITION, position);
+    glEnable(GL_LIGHT0);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient0);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse0);
+    glLightfv(GL_LIGHT0, GL_POSITION, pos0);
+
+    // --- LIGHT 1
+    float diffuse1[] = { 1.0f, 0.2f, 0.2f, 1.0f }; 
+    float pos1[] = { 10.0f, 10.0f, 2.0f, 1.0f };  
+
+    glEnable(GL_LIGHT1);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse1);
+    glLightfv(GL_LIGHT1, GL_POSITION, pos1);
+    
+    // Attenuáció 
+    glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.0f);
+    glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.1f);
+    glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.05f);
+    float player_pos[] = { scene->character.x, scene->character.y, scene->character.z + 1.0f, 1.0f };
+    glEnable(GL_LIGHT1);
+    glLightfv(GL_LIGHT1, GL_POSITION, player_pos);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, (float[]){1.0f, 0.5f, 0.0f, 1.0f});
 }
 
 
@@ -142,58 +157,45 @@ void draw_cube(float x, float y, float z, float size)
     float y2 = y + size;
     float z2 = z + size/4;
 
-    // floor
-    glColor3f(0.4f, 0.4f, 0.4f);
+    // ceiling (Teteje) 
     glBegin(GL_QUADS);
-        glNormal3f(0.0f, 0.0f, 1.0f);
-        glVertex3f(x,  y,  z);
-        glVertex3f(x2, y,  z);
-        glVertex3f(x2, y2, z);
-        glVertex3f(x,  y2, z);
-    glEnd();
-
-    // ceiling
-    glColor3f(0.5f, 0.5f, 0.5f);
-    glBegin(GL_QUADS);
-        glNormal3f(0.0f, 0.0f, 1.0f);   
+        glNormal3f(0.0f, 0.0f, 1.0f); 
         glVertex3f(x,  y,  z2);
         glVertex3f(x2, y,  z2);
         glVertex3f(x2, y2, z2);
         glVertex3f(x,  y2, z2);
     glEnd();
 
-    // front (y)
-    glColor3f(0.35f, 0.35f, 0.35f);
+    // front (Eleje - Y irány) 
     glBegin(GL_QUADS);
-        glNormal3f(0.0f, 0.0f, 1.0f);
+        glNormal3f(0.0f, -1.0f, 0.0f); 
         glVertex3f(x,  y, z);
         glVertex3f(x2, y, z);
         glVertex3f(x2, y, z2);
         glVertex3f(x,  y, z2);
     glEnd();
 
-    // back (y2)
+    // back (Hátulja)
     glBegin(GL_QUADS);
-        glNormal3f(0.0f, 0.0f, 1.0f);
+        glNormal3f(0.0f, 1.0f, 0.0f); 
         glVertex3f(x,  y2, z);
         glVertex3f(x2, y2, z);
         glVertex3f(x2, y2, z2);
         glVertex3f(x,  y2, z2);
     glEnd();
 
-    // left (x)
-    glColor3f(0.3f, 0.3f, 0.3f);
+    // left (Bal oldal) 
     glBegin(GL_QUADS);
-        glNormal3f(0.0f, 0.0f, 1.0f);
+        glNormal3f(-1.0f, 0.0f, 0.0f); 
         glVertex3f(x, y,  z);
         glVertex3f(x, y2, z);
         glVertex3f(x, y2, z2);
         glVertex3f(x, y,  z2);
     glEnd();
 
-    // right (x2)
+    // right (Jobb oldal) 
     glBegin(GL_QUADS);
-        glNormal3f(0.0f, 0.0f, 1.0f);
+        glNormal3f(1.0f, 0.0f, 0.0f);
         glVertex3f(x2, y,  z);
         glVertex3f(x2, y2, z);
         glVertex3f(x2, y2, z2);
@@ -269,12 +271,14 @@ void render_user_manual(const Scene* scene, int width, int height) {
 
     // Szövegek kiírása
     SDL_Color white = {255, 255, 255, 255};
-    draw_text(scene, NULL, "--- IRANYITAS ---", 25, 30, white);
-    draw_text(scene, NULL, "W/A/S/D - Mozgas", 25, 70, white);
-    draw_text(scene, NULL, "SPACE   - Ugras", 25, 100, white);
-    draw_text(scene, NULL, "8 / 9   - Fenyero", 25, 130, white);
-    draw_text(scene, NULL, "F1      - Tooltip", 25, 160, white);
-    draw_text(scene, NULL, "EGER    - Nezegetes", 25, 190, white);
+    draw_text(scene, NULL, "--- Controls ---", 25, 30, white);
+    draw_text(scene, NULL, "W/A/S/D - Movement", 25, 70, white);
+    draw_text(scene, NULL, "SPACE   - Jump", 25, 100, white);
+    draw_text(scene, NULL, "8 / 9   - Brightness", 25, 130, white);
+    draw_text(scene, NULL, "V   - 3rd Person", 25, 160, white);
+    draw_text(scene, NULL, "F1      - Tooltip", 25, 190, white);
+    draw_text(scene, NULL, "Mouse    - Camera", 25, 220, white);
+    draw_text(scene, NULL, "ESC    - Quit", 25, 250, white);
     
     // Visszaállás 3D-be
     glMatrixMode(GL_PROJECTION);

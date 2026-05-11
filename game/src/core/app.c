@@ -214,14 +214,12 @@ void update_app(App* app)
         app->build_timer += elapsed_time;
 
         if (app->build_timer >= app->build_threshold) {
-            // THE BUILD TRIGGER
             double angle = degree_to_radian(app->camera.rotation.z);
             float target_x = app->camera.position.x + cos(angle) * 2.0f;
             float target_y = app->camera.position.y + sin(angle) * 2.0f;
             
             map_upgrade_to_tower(&app->scene.map, (int)target_x, (int)target_y, app->selected_tower_type);
             
-            // Reset after successful build so they have to press again
             app->is_building = false; 
             app->build_timer = 0.0f;
         }
@@ -229,7 +227,7 @@ void update_app(App* app)
 
     character_update(&app->scene.character, &app->scene.map, elapsed_time);
     character_set_view(&app->scene.character, &app->camera);
-    update_scene(&app->scene, elapsed_time);  // also fixed: was current_time, should be elapsed_time
+    update_scene(&app->scene, elapsed_time); 
 }
 
 void render_app(App* app)
@@ -239,13 +237,11 @@ void render_app(App* app)
     
     glPushMatrix();
     set_view(&(app->camera));
-    render_scene(&(app->scene), app->camera.rotation.z);
+    render_scene(&(app->scene));
     glPopMatrix();
 
-    // 2D Overlay Section
     draw_crosshair(app); 
 
-    // --- NEW INDICATOR LOGIC ---
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -256,17 +252,14 @@ void render_app(App* app)
     glLoadIdentity();
     glDisable(GL_DEPTH_TEST);
 
-    // Set color based on selection
     if (app->selected_tower_type == TILE_TOWER_RED) {
-        glColor3f(1.0f, 0.0f, 0.0f); // Red
+        glColor3f(1.0f, 0.0f, 0.0f); 
     } else if (app->selected_tower_type == TILE_TOWER_BLUE) {
-        glColor3f(0.0f, 0.0f, 1.0f); // Blue
+        glColor3f(0.0f, 0.0f, 1.0f); 
     } else {
-        glColor3f(0.5f, 0.5f, 0.5f); // Grey if none
+        glColor3f(0.5f, 0.5f, 0.5f); 
     }
 
-    // Draw the circle in the bottom-left corner
-    // (-0.8, -0.8) moves it to the corner, 0.1 is the size
     draw_ui_circle(0.85f, -0.85f, 0.08f, 20);
 
     glEnable(GL_DEPTH_TEST);
@@ -274,14 +267,13 @@ void render_app(App* app)
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
-    // ----------------------------
 
     SDL_GL_SwapWindow(app->window);
 }
 
 void draw_crosshair(App* app)
 {
-    // 1. Logic Math (Keep this at the top)
+    // 1. Logic Math
     double angle = degree_to_radian(app->camera.rotation.z);
     float look_dist = 2.0f;
     float target_x = app->camera.position.x + cos(angle) * look_dist;
@@ -303,9 +295,9 @@ void draw_crosshair(App* app)
 
     // 3. Draw the Crosshair Lines
     if (buildable) {
-        glColor3f(0.0f, 1.0f, 0.0f); // Green
+        glColor3f(0.0f, 1.0f, 0.0f); 
     } else {
-        glColor3f(1.0f, 1.0f, 1.0f); // White
+        glColor3f(1.0f, 1.0f, 1.0f); 
     }
 
     glLineWidth(2.0f);
@@ -315,7 +307,7 @@ void draw_crosshair(App* app)
         glVertex2f(0.0f, -size);    glVertex2f(0.0f, size);
     glEnd();
 
-    // 4. Draw the Progress Circle (CRITICAL: Must stay inside the 2D block)
+    // 4. Draw the Progress Circle 
     if ((app->is_building && buildable) && (app->selected_tower_type == TILE_TOWER_BLUE || app->selected_tower_type == TILE_TOWER_RED)) {
         float progress = app->build_timer / app->build_threshold;
         if (progress > 1.0f) progress = 1.0f;
@@ -330,7 +322,6 @@ void draw_crosshair(App* app)
         glBegin(GL_LINE_STRIP);
         for (int i = 0; i <= segments_to_draw; i++) {
             float theta = 2.0f * 3.1415926f * (float)i / (float)segments;
-            // Center is 0,0 because of our glOrtho(-1, 1...) setup
             float x = radius * cosf(theta);
             float y = radius * sinf(theta);
             glVertex2f(x, y);
@@ -342,7 +333,7 @@ void draw_crosshair(App* app)
         glEnd();
     }
 
-    // 5. Exit 2D HUD Mode (Cleanup)
+    // 5. Exit 2D HUD Mode
     glEnable(GL_DEPTH_TEST);
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
@@ -352,7 +343,7 @@ void draw_crosshair(App* app)
 
 void draw_ui_circle(float x, float y, float radius, int segments) {
     glBegin(GL_TRIANGLE_FAN);
-        glVertex2f(x, y); // Center of circle
+        glVertex2f(x, y); 
         for (int i = 0; i <= segments; i++) {
             float theta = 2.0f * 3.1415926f * (float)i / (float)segments;
             glVertex2f(x + (radius * cosf(theta)), y + (radius * sinf(theta)));
@@ -365,12 +356,9 @@ void destroy_app(App* app)
     if (app->gl_context != NULL) {
         SDL_GL_DeleteContext(app->gl_context);
     }
-
     if (app->window != NULL) {
         SDL_DestroyWindow(app->window);
     }
-
     free(app->scene.character.model);
-
     SDL_Quit();
 }

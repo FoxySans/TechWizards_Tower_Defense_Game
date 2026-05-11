@@ -42,7 +42,7 @@ typedef struct Scene {
 
 void init_scene(Scene* scene);
 void update_scene(Scene* scene, double dt);
-void render_scene(const Scene* scene, float cam_rot_z);
+void render_scene(const Scene* scene);
 void render_map(const Map* map, const Scene* scene);
 void render_character(Character* character, GLuint texture_id);
 void render_user_manual(const Scene* scene,int width, int height);
