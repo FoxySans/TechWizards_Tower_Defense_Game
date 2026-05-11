@@ -45,8 +45,6 @@ void character_update(Character* c, Map* map, double dt)
     const float GRAVITY=-25.0f;
     c->velocity_z+=GRAVITY * (float)dt;
 
-    c->z += c->velocity_z * (float)dt;
-
     float floor_z = EYE_HEIGHT;
 
     float sprint = c->is_sprinting ? SPRINT_MULT : 1.0f;
@@ -73,8 +71,6 @@ void character_update(Character* c, Map* map, double dt)
     if (!(ty && ty->type == TILE_WALL && c->z < WALL_HEIGHT))
         c->y = new_y;
 
-    // vertical movement
-    c->z += c->speed_vertical * sprint * dt;
 
     // map border clamp
     if (c->x < 0.0f)          c->x = 0.0f;
@@ -120,19 +116,15 @@ void character_render(const Character* c)
     glPushMatrix();
         glTranslatef(c->x, c->y, c->z - EYE_HEIGHT + c->bob_amount);
         
-        // 1. Turning (Yaw) - Keep this as is
+        // 1. Turning
         glRotatef(c->render_angle, 0.0f, 0.0f, 1.0f);
         
-        // 2. Stand Up - Use 90.0f here. 
-        // If he's face down, use -90.0f. If he's on his back, use 90.0f.
+        // 2. Stand Up
         glRotatef(180.0f, 1.0f, 0.0f, 0.0f);
         
-        // 3. Facing Correction
-        // This is where you fix if he is "looking side-ways" when walking
+        // 3. Facing
         glRotatef(180.0f, 0.0f, 1.0f, 0.0f); 
-
         glScalef(c->model_scale, c->model_scale, c->model_scale);
-        
         glBindTexture(GL_TEXTURE_2D, c->texture_id);
         draw_model(c->model);
     glPopMatrix();
