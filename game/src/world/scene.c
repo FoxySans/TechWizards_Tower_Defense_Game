@@ -67,18 +67,29 @@ void render_map(const Map* map, const Scene* scene)
                 glColor3f(0.2f, 0.6f, 0.2f);  
                 draw_cube(x, y, 0.0f, tile_size);
 
-                int idx = (t->type == TILE_TOWER_RED) ? 0 : 1;
+             int idx = (t->type == TILE_TOWER_RED) ? 0 : 1;
                 glPushMatrix();
-                    glTranslatef(x + 0.5f, y + 0.5f, 0.25f);
+                    // 1. ELTOLÁS
+                    glTranslatef(x + 0.45f, y + 0.45f, 0.26f); 
+
+                    // 2. FORGATÁS
                     glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-                    glScalef(0.5f, 0.5f, 0.5f);
+
+                    // 3. SKÁLÁZÁS: 
+                    if (idx == 0) {
+                        glScalef(0.25f, 0.4f, 0.25f);
+                    } else {
+                        glScalef(0.5f, 0.5f, 0.5f); 
+                    } 
+
                     glEnable(GL_TEXTURE_2D);
                     glColor3f(1.0f, 1.0f, 1.0f);
                     glBindTexture(GL_TEXTURE_2D, scene->tower_textures[idx]);
+                    
                     draw_model(&scene->towers[idx]);
                     glDisable(GL_TEXTURE_2D);
                 glPopMatrix();
-            }
+           }
             else {
                 switch (t->type) {
                     case TILE_GRASS: glColor3f(0.2f, 0.6f, 0.2f); break;
